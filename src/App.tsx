@@ -13,6 +13,12 @@ import Emergency from "./pages/Emergency";
 import Track from "./pages/Track";
 import Profile from "./pages/Profile";
 import Reschedule from "./pages/Reschedule";
+import Prescriptions from "./pages/Prescriptions";
+import VideoCall from "./pages/VideoCall";
+import LabTests from "./pages/LabTests";
+import Chat from "./pages/Chat";
+import HealthEducation from "./pages/HealthEducation";
+import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +40,12 @@ const App = () => (
           <Route path="/track" element={<Track />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/reschedule" element={<Reschedule />} />
+          <Route path="/prescriptions" element={<Prescriptions />} />
+          <Route path="/video-call" element={<VideoCall />} />
+          <Route path="/lab-tests" element={<LabTests />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/health-education" element={<HealthEducation />} />
+          <Route path="/feedback" element={<Feedback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

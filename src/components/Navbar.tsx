@@ -8,18 +8,30 @@ import {
   RotateCcw, 
   User,
   LogOut,
-  Stethoscope
+  Stethoscope,
+  Pill,
+  Video,
+  TestTube,
+  MessageCircle,
+  BookOpen,
+  Star
 } from "lucide-react";
+import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Home", path: "/dashboard", icon: Home },
-  { name: "Bed Availability", path: "/beds", icon: Bed },
-  { name: "Doctor Appointment", path: "/appointments", icon: UserCheck },
+  { name: "Beds", path: "/beds", icon: Bed },
+  { name: "Appointments", path: "/appointments", icon: UserCheck },
   { name: "Emergency", path: "/emergency", icon: Phone },
-  { name: "Track Distance", path: "/track", icon: MapPin },
-  { name: "OP Rescheduling", path: "/reschedule", icon: RotateCcw },
+  { name: "Track", path: "/track", icon: MapPin },
+  { name: "Prescriptions", path: "/prescriptions", icon: Pill },
+  { name: "Video Call", path: "/video-call", icon: Video },
+  { name: "Lab Tests", path: "/lab-tests", icon: TestTube },
+  { name: "Chat", path: "/chat", icon: MessageCircle },
+  { name: "Education", path: "/health-education", icon: BookOpen },
+  { name: "Feedback", path: "/feedback", icon: Star },
 ];
 
 export function Navbar() {
@@ -62,8 +74,9 @@ export function Navbar() {
             })}
           </div>
 
-          {/* Profile & Logout */}
+          {/* Language & Profile & Logout */}
           <div className="flex items-center space-x-2">
+            <LanguageSelector />
             <Link to="/profile">
               <Button
                 variant={isActive("/profile") ? "default" : "ghost"}
