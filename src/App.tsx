@@ -19,6 +19,8 @@ import LabTests from "./pages/LabTests";
 import Chat from "./pages/Chat";
 import HealthEducation from "./pages/HealthEducation";
 import Feedback from "./pages/Feedback";
+import HospitalManagement from "./pages/HospitalManagement";
+import TollFreeService from "./pages/TollFreeService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +48,8 @@ const App = () => (
           <Route path="/chat" element={<Chat />} />
           <Route path="/health-education" element={<HealthEducation />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/hospital-management" element={<HospitalManagement />} />
+          <Route path="/toll-free" element={<TollFreeService />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

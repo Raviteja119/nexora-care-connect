@@ -3,8 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Navbar } from "@/components/Navbar";
-import { Bed, Users, Heart, Stethoscope, RefreshCw, Clock } from "lucide-react";
+import { Bed, Users, Heart, Stethoscope, RefreshCw, Clock, User, Phone, CreditCard } from "lucide-react";
 
 const bedTypes = [
   {
@@ -48,6 +53,17 @@ const bedTypes = [
 export default function Beds() {
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedBedType, setSelectedBedType] = useState<any>(null);
+  const [bookingData, setBookingData] = useState({
+    patientName: "",
+    patientAge: "",
+    contactNumber: "",
+    emergencyContact: "",
+    medicalCondition: "",
+    preferredDoctor: "",
+    insuranceNumber: "",
+    admissionType: "planned"
+  });
 
   const refreshData = () => {
     setIsRefreshing(true);
@@ -70,6 +86,27 @@ export default function Beds() {
     if (percentage > 50) return "success";
     if (percentage > 20) return "secondary";
     return "destructive";
+  };
+
+  const handleBookBed = (bedType: any) => {
+    setSelectedBedType(bedType);
+  };
+
+  const handleBookingSubmit = () => {
+    if (selectedBedType && bookingData.patientName && bookingData.contactNumber) {
+      alert(`Bed booking request submitted for ${selectedBedType.type}. You will receive confirmation within 15 minutes.`);
+      setSelectedBedType(null);
+      setBookingData({
+        patientName: "",
+        patientAge: "",
+        contactNumber: "",
+        emergencyContact: "",
+        medicalCondition: "",
+        preferredDoctor: "",
+        insuranceNumber: "",
+        admissionType: "planned"
+      });
+    }
   };
 
   return (
@@ -180,14 +217,86 @@ export default function Beds() {
                       <div className="text-lg font-semibold text-primary">
                         {bed.price}
                       </div>
-                      <Button 
-                        variant={bed.available > 0 ? "default" : "secondary"}
-                        disabled={bed.available === 0}
-                        className="flex items-center space-x-2"
-                      >
-                        <Bed className="h-4 w-4" />
-                        <span>{bed.available > 0 ? 'Book Bed' : 'Waitlist'}</span>
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant={bed.available > 0 ? "default" : "secondary"}
+                            disabled={bed.available === 0}
+                            className="flex items-center space-x-2"
+                            onClick={() => handleBookBed(bed)}
+                          >
+                            <Bed className="h-4 w-4" />
+                            <span>{bed.available > 0 ? 'Book Bed' : 'Waitlist'}</span>
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Book {selectedBedType?.type}</DialogTitle>
+                            <DialogDescription>
+                              Please provide patient details for bed booking
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="patientName">Patient Name *</Label>
+                                <Input
+                                  id="patientName"
+                                  value={bookingData.patientName}
+                                  onChange={(e) => setBookingData(prev => ({...prev, patientName: e.target.value}))}
+                                  placeholder="Full name"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="patientAge">Age</Label>
+                                <Input
+                                  id="patientAge"
+                                  value={bookingData.patientAge}
+                                  onChange={(e) => setBookingData(prev => ({...prev, patientAge: e.target.value}))}
+                                  placeholder="Age"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <Label htmlFor="contactNumber">Contact Number *</Label>
+                              <Input
+                                id="contactNumber"
+                                value={bookingData.contactNumber}
+                                onChange={(e) => setBookingData(prev => ({...prev, contactNumber: e.target.value}))}
+                                placeholder="+91 XXXXX XXXXX"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="medicalCondition">Medical Condition</Label>
+                              <Textarea
+                                id="medicalCondition"
+                                value={bookingData.medicalCondition}
+                                onChange={(e) => setBookingData(prev => ({...prev, medicalCondition: e.target.value}))}
+                                placeholder="Brief description of condition"
+                                rows={3}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="admissionType">Admission Type</Label>
+                              <Select value={bookingData.admissionType} onValueChange={(value) => setBookingData(prev => ({...prev, admissionType: value}))}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="planned">Planned Admission</SelectItem>
+                                  <SelectItem value="emergency">Emergency Admission</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button onClick={handleBookingSubmit} className="flex-1">
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Book Bed
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 </CardContent>

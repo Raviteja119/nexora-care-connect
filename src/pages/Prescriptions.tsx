@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Download, Eye, Pill, Clock, User, RefreshCw, Phone, MapPin } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Download, Eye, Pill, Clock, User, RefreshCw, Phone, MapPin, FileText } from "lucide-react";
 
 const mockPrescriptions = [
   {
@@ -66,6 +67,28 @@ export default function Prescriptions() {
       case "Completed": return "secondary";
       default: return "outline";
     }
+  };
+
+  const handleViewFull = (prescriptionId: string) => {
+    alert(`Opening full prescription view for ${prescriptionId}. This would show complete medical details, dosage instructions, and doctor's notes.`);
+  };
+
+  const handleDownloadPDF = (prescriptionId: string) => {
+    alert(`Downloading PDF for prescription ${prescriptionId}. In a real app, this would generate and download a PDF file.`);
+  };
+
+  const handleRequestRefill = (prescriptionId: string) => {
+    if (confirm("Request refill for this prescription? Your pharmacy will be notified.")) {
+      alert(`Refill request submitted for prescription ${prescriptionId}. You will receive confirmation within 2 hours.`);
+    }
+  };
+
+  const handleCallPharmacy = (pharmacyPhone: string) => {
+    alert(`Calling pharmacy at ${pharmacyPhone}. In a real app, this would initiate a phone call.`);
+  };
+
+  const handleViewDetails = (prescription: any) => {
+    setSelectedPrescription(prescription);
   };
 
   return (
@@ -205,7 +228,158 @@ export default function Prescriptions() {
                     )}
 
                     <div className="flex gap-2 flex-wrap">
-                      <Button variant="outline" size="sm">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Full
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Complete Prescription Details</DialogTitle>
+                            <DialogDescription>
+                              Full prescription information for {selectedPrescription.id}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 max-h-96 overflow-y-auto">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <h4 className="font-semibold">Doctor Information</h4>
+                                <p>{selectedPrescription.doctorName}</p>
+                                <p className="text-sm text-muted-foreground">Date: {selectedPrescription.date}</p>
+                              </div>
+                              <div>
+                                <h4 className="font-semibold">Patient Information</h4>
+                                <p>John Doe</p>
+                                <p className="text-sm text-muted-foreground">Age: 45, Male</p>
+                              </div>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold mb-2">Diagnosis</h4>
+                              <p className="bg-muted p-3 rounded">{selectedPrescription.diagnosis}</p>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold mb-2">Detailed Medications</h4>
+                              {selectedPrescription.medications.map((med, index) => (
+                                <div key={index} className="border rounded p-3 mb-2">
+                                  <h5 className="font-medium">{med.name}</h5>
+                                  <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground mt-1">
+                                    <p>Dosage: {med.dosage}</p>
+                                    <p>Frequency: {med.frequency}</p>
+                                    <p>Duration: {med.duration}</p>
+                                    <p>Remaining: {med.remaining} pills</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold mb-2">Doctor's Instructions</h4>
+                              <p className="bg-muted p-3 rounded">{selectedPrescription.instructions}</p>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      <Button variant="outline" size="sm" onClick={() => handleDownloadPDF(selectedPrescription.id)}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </Button>
+                      {selectedPrescription.status === "Active" && (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => handleRequestRefill(selectedPrescription.id)}>
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Request Refill
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleCallPharmacy(selectedPrescription.pharmacyPhone)}>
+                            <Phone className="h-4 w-4 mr-2" />
+                            Call Pharmacy
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="active" className="space-y-4">
+            {activePrescriptions.map((prescription) => (
+              <Card key={prescription.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Pill className="h-5 w-5 text-medical-primary" />
+                        {prescription.id}
+                      </CardTitle>
+                      <CardDescription>{prescription.doctorName}</CardDescription>
+                    </div>
+                    <Badge variant="default">Active</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <strong>Diagnosis:</strong> {prescription.diagnosis}
+                    </div>
+                    <div className="text-sm">
+                      <strong>Medications:</strong> {prescription.medications.length} items
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleViewDetails(prescription)}>
+                        View Details
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleRequestRefill(prescription.id)}>
+                        Request Refill
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="completed" className="space-y-4">
+            {completedPrescriptions.map((prescription) => (
+              <Card key={prescription.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Pill className="h-5 w-5 text-muted-foreground" />
+                        {prescription.id}
+                      </CardTitle>
+                      <CardDescription>{prescription.doctorName}</CardDescription>
+                    </div>
+                    <Badge variant="secondary">Completed</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <strong>Diagnosis:</strong> {prescription.diagnosis}
+                    </div>
+                    <div className="text-sm">
+                      <strong>Date:</strong> {prescription.date}
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleViewDetails(prescription)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
                         <Eye className="h-4 w-4 mr-2" />
                         View Full
                       </Button>

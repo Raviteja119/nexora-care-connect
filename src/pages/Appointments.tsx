@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/Navbar";
 import { 
   Calendar as CalendarIcon, 
@@ -14,7 +17,9 @@ import {
   Plus,
   CheckCircle,
   XCircle,
-  RotateCcw
+  RotateCcw,
+  Download,
+  Eye
 } from "lucide-react";
 
 const upcomingAppointments = [
@@ -89,6 +94,12 @@ export default function Appointments() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [rescheduleData, setRescheduleData] = useState({
+    appointmentId: null,
+    newDate: undefined as Date | undefined,
+    newTime: "",
+    reason: ""
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -107,6 +118,32 @@ export default function Appointments() {
       case "completed": return CheckCircle;
       case "cancelled": return XCircle;
       default: return Clock;
+    }
+  };
+
+  const handleReschedule = (appointmentId: number) => {
+    setRescheduleData(prev => ({...prev, appointmentId}));
+  };
+
+  const handleCancelAppointment = (appointmentId: number) => {
+    if (confirm("Are you sure you want to cancel this appointment?")) {
+      alert(`Appointment ${appointmentId} has been cancelled. You will receive a confirmation message.`);
+    }
+  };
+
+  const handleViewReport = (appointmentId: number) => {
+    alert(`Opening medical report for appointment ${appointmentId}. This would typically open a PDF or detailed report view.`);
+  };
+
+  const submitReschedule = () => {
+    if (rescheduleData.newDate && rescheduleData.newTime) {
+      alert(`Reschedule request submitted. You will receive confirmation within 2 hours.`);
+      setRescheduleData({
+        appointmentId: null,
+        newDate: undefined,
+        newTime: "",
+        reason: ""
+      });
     }
   };
 
@@ -179,11 +216,59 @@ export default function Appointments() {
                               {appointment.status}
                             </Badge>
                             <div className="flex space-x-2">
-                              <Button variant="outline" size="sm">
-                                <RotateCcw className="h-4 w-4 mr-1" />
-                                Reschedule
-                              </Button>
-                              <Button variant="destructive" size="sm">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm" onClick={() => handleReschedule(appointment.id)}>
+                                    <RotateCcw className="h-4 w-4 mr-1" />
+                                    Reschedule
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Reschedule Appointment</DialogTitle>
+                                    <DialogDescription>
+                                      Select new date and time for your appointment
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    <div>
+                                      <Label>New Date</Label>
+                                      <Calendar
+                                        mode="single"
+                                        selected={rescheduleData.newDate}
+                                        onSelect={(date) => setRescheduleData(prev => ({...prev, newDate: date}))}
+                                        disabled={(date) => date < new Date()}
+                                        className="rounded-md border"
+                                      />
+                                    </div>
+                                    <div>
+                                      <Label>New Time</Label>
+                                      <Select value={rescheduleData.newTime} onValueChange={(time) => setRescheduleData(prev => ({...prev, newTime: time}))}>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select time" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {timeSlots.map((time) => (
+                                            <SelectItem key={time} value={time}>{time}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div>
+                                      <Label>Reason (Optional)</Label>
+                                      <Textarea
+                                        value={rescheduleData.reason}
+                                        onChange={(e) => setRescheduleData(prev => ({...prev, reason: e.target.value}))}
+                                        placeholder="Reason for rescheduling"
+                                      />
+                                    </div>
+                                    <Button onClick={submitReschedule} className="w-full">
+                                      Submit Reschedule Request
+                                    </Button>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                              <Button variant="destructive" size="sm" onClick={() => handleCancelAppointment(appointment.id)}>
                                 Cancel
                               </Button>
                             </div>
@@ -244,7 +329,8 @@ export default function Appointments() {
                               <StatusIcon className="h-3 w-3 mr-1" />
                               {appointment.status}
                             </Badge>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => handleViewReport(appointment.id)}>
+                              <Eye className="h-4 w-4 mr-1" />
                               View Report
                             </Button>
                           </div>

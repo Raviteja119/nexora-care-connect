@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
 import { 
   Phone, 
@@ -19,7 +20,9 @@ import {
   Zap,
   Volume2,
   Play,
-  Pause
+  Pause,
+  Video,
+  Languages
 } from "lucide-react";
 import emergencyBg from "@/assets/emergency-bg.jpg";
 
@@ -36,32 +39,62 @@ const emergencyInstructions = {
   cardiac: {
     title: "Cardiac Emergency Instructions",
     message: "Stay calm. Do not move unless necessary. If you have prescribed heart medication, take it now. Loosen tight clothing around your neck and chest. If you feel faint, lie down with your legs elevated.",
-    audio: "For cardiac emergencies: Stay calm and still. If you have heart medication, take it now. Help is coming."
+    audio: {
+      english: "For cardiac emergencies: Stay calm and still. If you have heart medication, take it now. Help is coming.",
+      hindi: "हृदय आपातकाल के लिए: शांत रहें और स्थिर रहें। यदि आपके पास हृदय की दवा है, तो अभी लें। मदद आ रही है।",
+      tamil: "இதய அவசரநிலைகளுக்கு: அமைதியாக இருங்கள் மற்றும் அசையாமல் இருங்கள். உங்களிடம் இதய மருந்து இருந்தால், இப்போது எடுத்துக் கொள்ளுங்கள். உதவி வருகிறது।",
+      telugu: "గుండె అత్యవసర పరిస్థితుల కోసం: ప్రశాంతంగా ఉండండి మరియు నిశ్చలంగా ఉండండి. మీ దగ్గర గుండె మందు ఉంటే, ఇప్పుడే తీసుకోండి. సహాయం వస్తోంది।"
+    }
   },
   accident: {
     title: "Accident/Trauma Instructions", 
     message: "Do not move if you suspect spinal injury. Apply pressure to any bleeding wounds with clean cloth. Stay conscious and alert. If others are involved, ensure their safety too.",
-    audio: "For accidents: Do not move if injured. Apply pressure to bleeding wounds. Stay alert. Help is on the way."
+    audio: {
+      english: "For accidents: Do not move if injured. Apply pressure to bleeding wounds. Stay alert. Help is on the way.",
+      hindi: "दुर्घटनाओं के लिए: यदि घायल हैं तो न हिलें। खून बहने वाले घावों पर दबाव डालें। सतर्क रहें। मदद आ रही है।",
+      tamil: "விபத்துகளுக்கு: காயம் பட்டிருந்தால் அசையாதீர்கள். இரத்தம் வரும் காயங்களில் அழுத்தம் கொடுங்கள். எச்சரிக்கையாக இருங்கள். உதவி வழியில் உள்ளது।",
+      telugu: "ప్రమాదాల కోసం: గాయపడితే కదలవద్దు. రక్తస్రావం అయ్యే గాయాలపై ఒత్తిడి వేయండి. అప్రమత్తంగా ఉండండి. సహాయం మార్గంలో ఉంది।"
+    }
   },
   delivery: {
     title: "Emergency Delivery Instructions",
     message: "Find a clean, comfortable place to lie down. Have clean towels ready. Do not push unless you feel the urge. Breathe steadily. Someone will guide you through the process when help arrives.",
-    audio: "For emergency delivery: Find a clean place to lie down. Have towels ready. Breathe steadily. Medical help is coming."
+    audio: {
+      english: "For emergency delivery: Find a clean place to lie down. Have towels ready. Breathe steadily. Medical help is coming.",
+      hindi: "आपातकालीन प्रसव के लिए: लेटने के लिए एक साफ जगह खोजें। तौलिए तैयार रखें। स्थिर रूप से सांस लें। चिकित्सा सहायता आ रही है।",
+      tamil: "அவசர பிரசவத்திற்கு: படுக்க ஒரு சுத்தமான இடத்தைக் கண்டுபிடிக்கவும். துண்டுகளை தயாராக வைக்கவும். நிலையாக மூச்சு விடுங்கள். மருத்துவ உதவி வருகிறது।",
+      telugu: "అత్యవసర ప్రసవం కోసం: పడుకోవడానికి శుభ్రమైన స్థలాన్ని కనుగొనండి. టవల్స్ సిద్ధంగా ఉంచండి. స్థిరంగా ఊపిరి తీసుకోండి. వైద్య సహాయం వస్తోంది."
+    }
   },
   stroke: {
     title: "Stroke/Neurological Instructions",
     message: "Note the time symptoms started. Do not eat or drink anything. Lie down with your head slightly elevated. Stay as still as possible. Try to stay calm and conscious.",
-    audio: "For stroke: Note the time. Do not eat or drink. Lie down with head elevated. Stay still and calm."
+    audio: {
+      english: "For stroke: Note the time. Do not eat or drink. Lie down with head elevated. Stay still and calm.",
+      hindi: "स्ट्रोक के लिए: समय नोट करें। कुछ न खाएं या पिएं। सिर को ऊंचा करके लेट जाएं। शांत और स्थिर रहें।",
+      tamil: "பக்கவாதத்திற்கு: நேரத்தை குறித்து வைக்கவும். எதுவும் சாப்பிடவோ குடிக்கவோ வேண்டாம். தலையை உயர்த்தி படுக்கவும். அமைதியாக இருங்கள்।",
+      telugu: "స్ట్రోక్ కోసం: సమయాన్ని గుర్తుంచుకోండి. ఏమీ తినవద్దు లేదా త్రాగవద్దు. తలను పైకి లేపి పడుకోండి. ప్రశాంతంగా ఉండండి."
+    }
   },
   respiratory: {
     title: "Breathing Difficulty Instructions", 
     message: "Sit upright, leaning slightly forward. Loosen tight clothing. Use your inhaler if you have one. Try to breathe slowly and deeply. Do not lie down unless instructed.",
-    audio: "For breathing difficulty: Sit upright and lean forward. Use your inhaler if available. Breathe slowly. Help is coming."
+    audio: {
+      english: "For breathing difficulty: Sit upright and lean forward. Use your inhaler if available. Breathe slowly. Help is coming.",
+      hindi: "सांस लेने में कठिनाई के लिए: सीधे बैठें और आगे झुकें। यदि उपलब्ध हो तो अपना इनहेलर उपयोग करें। धीरे-धीरे सांस लें। मदद आ रही है।",
+      tamil: "மூச்சுத் திணறலுக்கு: நேராக உட்கார்ந்து முன்னோக்கி சாய்ந்து கொள்ளுங்கள். உங்கள் இன்ஹேலர் இருந்தால் பயன்படுத்துங்கள். மெதுவாக மூச்சு விடுங்கள். உதவி வருகிறது।",
+      telugu: "శ్వాస ఇబ్బందికి: నిటారుగా కూర్చుని ముందుకు వంగండి. మీ ఇన్హేలర్ అందుబాటులో ఉంటే ఉపయోగించండి. నెమ్మదిగా ఊపిరి తీసుకోండి. సహాయం వస్తోంది."
+    }
   },
   other: {
     title: "General Emergency Instructions",
     message: "Stay calm and alert. Do not leave your current location unless it's unsafe. Follow any specific medical instructions you've been given. Help is on the way.",
-    audio: "For emergencies: Stay calm and alert. Remain where you are unless unsafe. Follow your medical instructions."
+    audio: {
+      english: "For emergencies: Stay calm and alert. Remain where you are unless unsafe. Follow your medical instructions.",
+      hindi: "आपातकाल के लिए: शांत और सतर्क रहें। जब तक असुरक्षित न हो तब तक वहीं रहें। अपने चिकित्सा निर्देशों का पालन करें।",
+      tamil: "அவசரநிலைகளுக்கு: அமைதியாகவும் எச்சரிக்கையாகவும் இருங்கள். பாதுகாப்பற்றதாக இல்லாத வரை நீங்கள் இருக்கும் இடத்திலேயே இருங்கள்।",
+      telugu: "అత్యవసర పరిస్థితుల కోసం: ప్రశాంతంగా మరియు అప్రమత్తంగా ఉండండి. అసురక్షితం కాకపోతే మీరు ఉన్న చోటనే ఉండండి।"
+    }
   }
 };
 
@@ -71,13 +104,16 @@ export default function Emergency() {
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [audioMessage, setAudioMessage] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("english");
+  const [videoCallActive, setVideoCallActive] = useState(false);
 
   const handleEmergencyRequest = () => {
     setEmergencyRequested(true);
     if (selectedEmergency) {
       const instruction = emergencyInstructions[selectedEmergency as keyof typeof emergencyInstructions];
-      setAudioMessage(instruction.audio);
-      playAudioMessage(instruction.audio);
+      const audioText = instruction.audio[selectedLanguage as keyof typeof instruction.audio];
+      setAudioMessage(audioText);
+      playAudioMessage(audioText);
     }
   };
 
@@ -104,6 +140,52 @@ export default function Emergency() {
       playAudioMessage(audioMessage);
     }
   };
+
+  const handleVideoCall = () => {
+    setVideoCallActive(true);
+    // Simulate video call connection
+    setTimeout(() => {
+      setVideoCallActive(false);
+    }, 15000);
+  };
+
+  if (videoCallActive) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center text-white">
+          <div className="w-96 h-72 bg-gray-800 rounded-lg mb-4 flex items-center justify-center relative">
+            <User className="h-24 w-24 text-gray-400" />
+            <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+              Connected to Emergency Doctor
+            </div>
+            <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+              Dr. Emergency Response
+            </div>
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Emergency Video Consultation</h2>
+          <p className="text-gray-300 mb-4">Connected to nearest hospital emergency doctor</p>
+          <div className="flex gap-4 justify-center">
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-full w-16 h-16 bg-white/10 hover:bg-white/20"
+            >
+              <Video className="h-6 w-6" />
+            </Button>
+            <Button
+              variant="destructive"
+              size="lg"
+              onClick={() => setVideoCallActive(false)}
+              className="rounded-full w-16 h-16"
+            >
+              <Phone className="h-6 w-6" />
+            </Button>
+          </div>
+          <p className="text-xs text-gray-400 mt-4">Emergency consultation active - Follow doctor's instructions</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -178,6 +260,23 @@ export default function Emergency() {
                       onChange={(e) => setAdditionalInfo(e.target.value)}
                       className="min-h-[100px]"
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">
+                      Preferred Language for Instructions
+                    </label>
+                    <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="english">English</SelectItem>
+                        <SelectItem value="hindi">हिन्दी (Hindi)</SelectItem>
+                        <SelectItem value="tamil">தமிழ் (Tamil)</SelectItem>
+                        <SelectItem value="telugu">తెలుగు (Telugu)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
@@ -290,6 +389,22 @@ export default function Emergency() {
                     </Button>
                     <div className="text-sm text-muted-foreground">
                       Emergency ID: <span className="font-mono">EMG-{Date.now().toString().slice(-6)}</span>
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t">
+                      <h3 className="text-lg font-semibold mb-3">Need Immediate Medical Guidance?</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Connect with an emergency doctor via video call for immediate first aid instructions
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={handleVideoCall}
+                        className="w-full"
+                      >
+                        <Video className="h-5 w-5 mr-2" />
+                        Connect to Emergency Doctor
+                      </Button>
                     </div>
                   </div>
                 </div>

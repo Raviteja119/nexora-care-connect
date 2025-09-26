@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
 import { 
   MapPin, 
@@ -11,7 +12,8 @@ import {
   Car,
   RefreshCw,
   Phone,
-  Route
+  Route,
+  User
 } from "lucide-react";
 
 interface LocationData {
@@ -30,6 +32,13 @@ export default function Track() {
   });
   const [isTracking, setIsTracking] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [ambulanceDetails, setAmbulanceDetails] = useState({
+    vehicleNumber: "KA-01-AB-1234",
+    driverName: "Rajesh Kumar",
+    driverPhone: "+91-98765-43210",
+    paramedic: "Dr. Priya Sharma",
+    paramedicPhone: "+91-98765-43211"
+  });
 
   const refreshLocation = () => {
     setIsTracking(true);
@@ -66,6 +75,13 @@ export default function Track() {
       case "en-route": return "default";
       case "arrived": return "default";
       default: return "outline";
+    }
+  };
+
+  const handleContactAmbulance = () => {
+    if (locationData.ambulanceStatus !== "not-requested") {
+      // Simulate calling ambulance
+      alert(`Connecting to ambulance driver: ${ambulanceDetails.driverName} at ${ambulanceDetails.driverPhone}`);
     }
   };
 
@@ -200,13 +216,59 @@ export default function Track() {
                     <span>Request Ambulance</span>
                   </Button>
                 ) : (
-                  <Button
-                    variant="outline"
-                    className="flex items-center space-x-2"
-                  >
-                    <Phone className="h-4 w-4" />
-                    <span>Contact Ambulance</span>
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="flex items-center space-x-2"
+                      >
+                        <Phone className="h-4 w-4" />
+                        <span>Contact Ambulance</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Ambulance Contact Details</DialogTitle>
+                        <DialogDescription>
+                          Contact information for your assigned ambulance
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="border rounded-lg p-4">
+                          <h3 className="font-semibold mb-2">Vehicle Information</h3>
+                          <p className="text-sm text-muted-foreground">Vehicle Number: {ambulanceDetails.vehicleNumber}</p>
+                          <p className="text-sm text-muted-foreground">Status: {locationData.ambulanceStatus}</p>
+                          <p className="text-sm text-muted-foreground">ETA: {locationData.ambulanceETA}</p>
+                        </div>
+                        <div className="border rounded-lg p-4">
+                          <h3 className="font-semibold mb-2">Driver Details</h3>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">{ambulanceDetails.driverName}</p>
+                              <p className="text-sm text-muted-foreground">{ambulanceDetails.driverPhone}</p>
+                            </div>
+                            <Button size="sm" onClick={handleContactAmbulance}>
+                              <Phone className="h-4 w-4 mr-1" />
+                              Call
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="border rounded-lg p-4">
+                          <h3 className="font-semibold mb-2">Paramedic Details</h3>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium">{ambulanceDetails.paramedic}</p>
+                              <p className="text-sm text-muted-foreground">{ambulanceDetails.paramedicPhone}</p>
+                            </div>
+                            <Button size="sm" onClick={() => alert(`Calling ${ambulanceDetails.paramedic} at ${ambulanceDetails.paramedicPhone}`)}>
+                              <Phone className="h-4 w-4 mr-1" />
+                              Call
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 )}
                 <Button variant="outline">
                   <Route className="h-4 w-4 mr-2" />

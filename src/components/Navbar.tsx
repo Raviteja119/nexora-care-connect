@@ -32,6 +32,8 @@ const navItems = [
   { name: "Chat", path: "/chat", icon: MessageCircle },
   { name: "Education", path: "/health-education", icon: BookOpen },
   { name: "Feedback", path: "/feedback", icon: Star },
+  { name: "Hospitals", path: "/hospital-management", icon: Stethoscope },
+  { name: "Toll-Free", path: "/toll-free", icon: Phone },
 ];
 
 export function Navbar() {
@@ -53,7 +55,7 @@ export function Navbar() {
           </div>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex space-x-1">
+          <div className="hidden md:flex space-x-1 overflow-x-auto scrollbar-hide max-w-2xl">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -97,8 +99,8 @@ export function Navbar() {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden pb-2">
-          <div className="flex flex-wrap gap-1">
+        <div className="md:hidden pb-2 overflow-x-auto">
+          <div className="flex gap-1 min-w-max">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
