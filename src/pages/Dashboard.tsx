@@ -2,18 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
-import { 
-  Bed, 
-  Calendar, 
-  UserCheck, 
-  Phone, 
-  Activity,
-  Clock,
-  MapPin,
-  AlertTriangle,
-  Stethoscope
-} from "lucide-react";
-import { Link } from "react-router-dom";
+import { Bed, Calendar, UserCheck, Phone, Activity, Clock, MapPin, TriangleAlert as AlertTriangle, Stethoscope } from "lucide-react" } from "react-router-dom";
 import dashboardBg from "@/assets/dashboard-bg.jpg";
 
 const quickStats = [
@@ -165,18 +154,6 @@ export default function Dashboard() {
                   <Button variant="outline" className="w-full h-12 justify-start">
                     <Clock className="h-4 w-4 mr-2" />
                     Reschedule OP
-                  </Button>
-                </Link>
-                <Link to="/hospital-management">
-                  <Button variant="outline" className="w-full h-12 justify-start">
-                    <Stethoscope className="h-4 w-4 mr-2" />
-                    Find Hospitals
-                  </Button>
-                </Link>
-                <Link to="/toll-free">
-                  <Button variant="outline" className="w-full h-12 justify-start">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Toll-Free Help
                   </Button>
                 </Link>
               </div>

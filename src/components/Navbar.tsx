@@ -1,21 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  Bed, 
-  UserCheck, 
-  Phone, 
-  MapPin, 
-  RotateCcw, 
-  User,
-  LogOut,
-  Stethoscope,
-  Pill,
-  Video,
-  TestTube,
-  MessageCircle,
-  BookOpen,
-  Star
-} from "lucide-react";
+import { Chrome as Home, Bed, UserCheck, Phone, MapPin, RotateCcw, User, LogOut, Stethoscope, Pill, Video, TestTube, MessageCircle, BookOpen, Star } from "lucide-react";
 import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,8 +16,6 @@ const navItems = [
   { name: "Chat", path: "/chat", icon: MessageCircle },
   { name: "Education", path: "/health-education", icon: BookOpen },
   { name: "Feedback", path: "/feedback", icon: Star },
-  { name: "Hospitals", path: "/hospital-management", icon: Stethoscope },
-  { name: "Toll-Free", path: "/toll-free", icon: Phone },
 ];
 
 export function Navbar() {
@@ -55,7 +37,7 @@ export function Navbar() {
           </div>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex space-x-1 overflow-x-auto scrollbar-hide max-w-2xl">
+          <div className="hidden md:flex space-x-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -99,8 +81,8 @@ export function Navbar() {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden pb-2 overflow-x-auto">
-          <div className="flex gap-1 min-w-max">
+        <div className="md:hidden pb-2">
+          <div className="flex flex-wrap gap-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (

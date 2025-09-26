@@ -9,18 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Navbar } from "@/components/Navbar";
-import { 
-  Hospital, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  MapPin, 
-  Phone, 
-  Users, 
-  Building,
-  Search,
-  Save
-} from "lucide-react";
+import { Hospital, Plus, CreditCard as Edit, Trash2, MapPin, Phone, Users, Building, Search, Save } from "lucide-react";
 
 interface Hospital {
   id: string;

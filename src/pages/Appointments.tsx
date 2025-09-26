@@ -9,18 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/Navbar";
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  User, 
-  Stethoscope, 
-  Plus,
-  CheckCircle,
-  XCircle,
-  RotateCcw,
-  Download,
-  Eye
-} from "lucide-react";
+import { Calendar as CalendarIcon, Clock, User, Stethoscope, Plus, CircleCheck as CheckCircle, Circle as XCircle, RotateCcw, Download, Eye } from "lucide-react";
 
 const upcomingAppointments = [
   {

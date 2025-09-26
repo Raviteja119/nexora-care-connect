@@ -7,23 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
-import { 
-  Phone, 
-  AlertTriangle, 
-  Heart, 
-  Car, 
-  Baby, 
-  Activity,
-  MapPin,
-  Clock,
-  User,
-  Zap,
-  Volume2,
-  Play,
-  Pause,
-  Video,
-  Languages
-} from "lucide-react";
+import { Phone, TriangleAlert as AlertTriangle, Heart, Car, Baby, Activity, MapPin, Clock, User, Zap, Volume2, Play, Pause, Video, Languages } from "lucide-react";
 import emergencyBg from "@/assets/emergency-bg.jpg";
 
 const emergencyTypes = [
