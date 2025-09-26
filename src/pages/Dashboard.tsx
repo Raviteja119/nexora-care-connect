@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
-import { Bed, Calendar, UserCheck, Phone, Activity, Clock, MapPin, TriangleAlert as AlertTriangle, Stethoscope } from "lucide-react" } from "react-router-dom";
+import { Bed, Calendar, UserCheck, Phone, Activity, Clock, MapPin, TriangleAlert as AlertTriangle, Stethoscope } from "lucide-react";
+import { Link } from "react-router-dom";
 import dashboardBg from "@/assets/dashboard-bg.jpg";
 
 const quickStats = [
@@ -11,7 +11,6 @@ const quickStats = [
     value: "47",
     description: "General: 23, ICU: 15, Special: 9",
     icon: Bed,
-    color: "success",
     link: "/beds"
   },
   {
@@ -19,7 +18,6 @@ const quickStats = [
     value: "3",
     description: "Next: Tomorrow 10:30 AM",
     icon: Calendar,
-    color: "primary",
     link: "/appointments"
   },
   {
@@ -27,7 +25,6 @@ const quickStats = [
     value: "28",
     description: "Specialists: 12, General: 16",
     icon: UserCheck,
-    color: "accent",
     link: "/doctors"
   },
   {
@@ -35,7 +32,6 @@ const quickStats = [
     value: "Ready",
     description: "Response time: < 5 min",
     icon: Phone,
-    color: "emergency",
     link: "/emergency"
   }
 ];
@@ -81,7 +77,7 @@ export default function Dashboard() {
               Managing your healthcare journey with ease and precision
             </p>
             <Link to="/emergency">
-              <Button variant="emergency" size="lg" className="shadow-lg">
+              <Button variant="destructive" size="lg" className="shadow-lg">
                 <Phone className="h-5 w-5 mr-2" />
                 Emergency Access
               </Button>
@@ -215,7 +211,7 @@ export default function Dashboard() {
                 </p>
               </div>
               <Link to="/emergency">
-                <Button variant="emergency" size="lg">
+                <Button variant="destructive" size="lg">
                   Emergency Access
                 </Button>
               </Link>
