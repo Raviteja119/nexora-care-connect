@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Navbar } from "@/components/Navbar";
 import { 
   Phone, 
@@ -15,7 +16,10 @@ import {
   MapPin,
   Clock,
   User,
-  Zap
+  Zap,
+  Volume2,
+  Play,
+  Pause
 } from "lucide-react";
 import emergencyBg from "@/assets/emergency-bg.jpg";
 
@@ -28,14 +32,77 @@ const emergencyTypes = [
   { value: "other", label: "Other Emergency", icon: AlertTriangle, color: "text-yellow-500" },
 ];
 
+const emergencyInstructions = {
+  cardiac: {
+    title: "Cardiac Emergency Instructions",
+    message: "Stay calm. Do not move unless necessary. If you have prescribed heart medication, take it now. Loosen tight clothing around your neck and chest. If you feel faint, lie down with your legs elevated.",
+    audio: "For cardiac emergencies: Stay calm and still. If you have heart medication, take it now. Help is coming."
+  },
+  accident: {
+    title: "Accident/Trauma Instructions", 
+    message: "Do not move if you suspect spinal injury. Apply pressure to any bleeding wounds with clean cloth. Stay conscious and alert. If others are involved, ensure their safety too.",
+    audio: "For accidents: Do not move if injured. Apply pressure to bleeding wounds. Stay alert. Help is on the way."
+  },
+  delivery: {
+    title: "Emergency Delivery Instructions",
+    message: "Find a clean, comfortable place to lie down. Have clean towels ready. Do not push unless you feel the urge. Breathe steadily. Someone will guide you through the process when help arrives.",
+    audio: "For emergency delivery: Find a clean place to lie down. Have towels ready. Breathe steadily. Medical help is coming."
+  },
+  stroke: {
+    title: "Stroke/Neurological Instructions",
+    message: "Note the time symptoms started. Do not eat or drink anything. Lie down with your head slightly elevated. Stay as still as possible. Try to stay calm and conscious.",
+    audio: "For stroke: Note the time. Do not eat or drink. Lie down with head elevated. Stay still and calm."
+  },
+  respiratory: {
+    title: "Breathing Difficulty Instructions", 
+    message: "Sit upright, leaning slightly forward. Loosen tight clothing. Use your inhaler if you have one. Try to breathe slowly and deeply. Do not lie down unless instructed.",
+    audio: "For breathing difficulty: Sit upright and lean forward. Use your inhaler if available. Breathe slowly. Help is coming."
+  },
+  other: {
+    title: "General Emergency Instructions",
+    message: "Stay calm and alert. Do not leave your current location unless it's unsafe. Follow any specific medical instructions you've been given. Help is on the way.",
+    audio: "For emergencies: Stay calm and alert. Remain where you are unless unsafe. Follow your medical instructions."
+  }
+};
+
 export default function Emergency() {
   const [selectedEmergency, setSelectedEmergency] = useState<string>("");
   const [emergencyRequested, setEmergencyRequested] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [audioMessage, setAudioMessage] = useState("");
 
   const handleEmergencyRequest = () => {
     setEmergencyRequested(true);
-    // In a real app, this would trigger actual emergency services
+    if (selectedEmergency) {
+      const instruction = emergencyInstructions[selectedEmergency as keyof typeof emergencyInstructions];
+      setAudioMessage(instruction.audio);
+      playAudioMessage(instruction.audio);
+    }
+  };
+
+  const playAudioMessage = (message: string) => {
+    if ('speechSynthesis' in window) {
+      setIsPlayingAudio(true);
+      const utterance = new SpeechSynthesisUtterance(message);
+      utterance.rate = 0.8;
+      utterance.volume = 1;
+      utterance.onend = () => setIsPlayingAudio(false);
+      speechSynthesis.speak(utterance);
+    }
+  };
+
+  const stopAudioMessage = () => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+    }
+  };
+
+  const replayInstructions = () => {
+    if (audioMessage) {
+      playAudioMessage(audioMessage);
+    }
   };
 
   return (
@@ -182,51 +249,101 @@ export default function Emergency() {
           </div>
         ) : (
           /* Emergency Requested State */
-          <Card className="border-success bg-success/5">
-            <CardContent className="pt-8 pb-8">
-              <div className="text-center space-y-6">
-                <div className="bg-success/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-                  <Phone className="h-10 w-10 text-success animate-pulse" />
-                </div>
-                
-                <div>
-                  <h2 className="text-3xl font-bold text-success mb-2">
-                    Emergency Request Sent!
-                  </h2>
-                  <p className="text-lg text-muted-foreground mb-4">
-                    Help is on the way. Stay calm and follow these instructions.
-                  </p>
-                </div>
+          <div className="space-y-6">
+            <Card className="border-success bg-success/5">
+              <CardContent className="pt-8 pb-8">
+                <div className="text-center space-y-6">
+                  <div className="bg-success/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
+                    <Phone className="h-10 w-10 text-success animate-pulse" />
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-3xl font-bold text-success mb-2">
+                      Emergency Request Sent!
+                    </h2>
+                    <p className="text-lg text-muted-foreground mb-4">
+                      Help is on the way. Stay calm and follow these instructions.
+                    </p>
+                  </div>
 
-                <div className="bg-card p-6 rounded-lg border">
-                  <h3 className="font-semibold text-foreground mb-4">What happens next:</h3>
-                  <div className="space-y-3 text-left">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-success rounded-full"></div>
-                      <span className="text-sm">Emergency team has been notified</span>
+                  <div className="bg-card p-6 rounded-lg border">
+                    <h3 className="font-semibold text-foreground mb-4">What happens next:</h3>
+                    <div className="space-y-3 text-left">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-success rounded-full"></div>
+                        <span className="text-sm">Emergency team has been notified</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-success rounded-full"></div>
+                        <span className="text-sm">Ambulance dispatched to your location</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-muted rounded-full"></div>
+                        <span className="text-sm">Medical team will contact you shortly</span>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-success rounded-full"></div>
-                      <span className="text-sm">Ambulance dispatched to your location</span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-muted rounded-full"></div>
-                      <span className="text-sm">Medical team will contact you shortly</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Button variant="outline" className="w-full" onClick={() => setEmergencyRequested(false)}>
+                      Send Another Emergency Request
+                    </Button>
+                    <div className="text-sm text-muted-foreground">
+                      Emergency ID: <span className="font-mono">EMG-{Date.now().toString().slice(-6)}</span>
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-4">
-                  <Button variant="outline" className="w-full" onClick={() => setEmergencyRequested(false)}>
-                    Send Another Emergency Request
-                  </Button>
-                  <div className="text-sm text-muted-foreground">
-                    Emergency ID: <span className="font-mono">EMG-{Date.now().toString().slice(-6)}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Emergency Instructions */}
+            {selectedEmergency && (
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center space-x-2">
+                      <Volume2 className="h-5 w-5 text-primary" />
+                      <span>{emergencyInstructions[selectedEmergency as keyof typeof emergencyInstructions].title}</span>
+                    </span>
+                    <div className="space-x-2">
+                      <Button
+                        variant="outline" 
+                        size="sm"
+                        onClick={replayInstructions}
+                        disabled={isPlayingAudio}
+                      >
+                        <Play className="h-4 w-4 mr-1" />
+                        Replay
+                      </Button>
+                      {isPlayingAudio && (
+                        <Button variant="outline" size="sm" onClick={stopAudioMessage}>
+                          <Pause className="h-4 w-4 mr-1" />
+                          Stop
+                        </Button>
+                      )}
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="text-base font-medium">
+                      {emergencyInstructions[selectedEmergency as keyof typeof emergencyInstructions].message}
+                    </AlertDescription>
+                  </Alert>
+                  
+                  {isPlayingAudio && (
+                    <div className="mt-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+                      <div className="flex items-center space-x-2 text-primary">
+                        <Volume2 className="h-4 w-4 animate-pulse" />
+                        <span className="text-sm font-medium">Playing audio instructions...</span>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
       </div>
     </div>

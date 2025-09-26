@@ -82,6 +82,16 @@ export default function LabTests() {
     }
   };
 
+  const handleBookTest = () => {
+    if (selectedTest && selectedTime && selectedDate) {
+      const testName = filteredTests.find(t => t.id === selectedTest)?.name;
+      alert(`Lab test booked: ${testName} on ${selectedDate.toDateString()} at ${selectedTime}`);
+      setSelectedTest("");
+      setSelectedTime("");
+      setSelectedDate(new Date());
+    }
+  };
+
   const filteredTests = availableTests.filter(test =>
     test.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -312,6 +322,7 @@ export default function LabTests() {
                   <Button 
                     className="w-full bg-medical-primary hover:bg-medical-primary/90"
                     disabled={!selectedTest || !selectedTime || !selectedDate}
+                    onClick={handleBookTest}
                   >
                     Book Lab Test
                   </Button>

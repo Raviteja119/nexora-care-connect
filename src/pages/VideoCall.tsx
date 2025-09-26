@@ -62,18 +62,42 @@ export default function VideoCall() {
     // Simulate video call interface
     setTimeout(() => {
       setInCall(false);
-    }, 5000);
+    }, 10000); // Extended to 10 seconds for better demo
+  };
+
+  const handleScheduleAppointment = () => {
+    if (selectedDoctor && selectedTime && selectedDate) {
+      // Simulate scheduling
+      alert(`Video appointment scheduled with ${availableDoctors.find(d => d.id === selectedDoctor)?.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
+      setSelectedDoctor("");
+      setSelectedTime("");
+      setSelectedDate(new Date());
+    }
   };
 
   if (inCall) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center text-white">
-          <div className="w-80 h-60 bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
+          <div className="w-80 h-60 bg-gray-800 rounded-lg mb-4 flex items-center justify-center relative">
             <User className="h-20 w-20 text-gray-400" />
+            <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+              Connected
+            </div>
+            <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+              Dr. Johnson
+            </div>
           </div>
-          <h2 className="text-xl font-semibold mb-4">Connected with Doctor</h2>
+          <h2 className="text-xl font-semibold mb-2">Video Consultation Active</h2>
+          <p className="text-gray-300 mb-4">You are now connected with your doctor</p>
           <div className="flex gap-4 justify-center">
+            <Button
+              variant="outline"
+              size="lg"
+              className="rounded-full w-16 h-16 bg-white/10 hover:bg-white/20"
+            >
+              <Video className="h-6 w-6" />
+            </Button>
             <Button
               variant="destructive"
               size="lg"
@@ -83,6 +107,7 @@ export default function VideoCall() {
               <PhoneOff className="h-6 w-6" />
             </Button>
           </div>
+          <p className="text-xs text-gray-400 mt-4">Call will end automatically in 10 seconds for demo</p>
         </div>
       </div>
     );
@@ -227,6 +252,7 @@ export default function VideoCall() {
                   <Button 
                     className="w-full bg-medical-primary hover:bg-medical-primary/90"
                     disabled={!selectedDoctor || !selectedTime || !selectedDate}
+                    onClick={handleScheduleAppointment}
                   >
                     Schedule Video Appointment
                   </Button>
