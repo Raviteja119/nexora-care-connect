@@ -15,6 +15,8 @@ import {
   Route,
   User
 } from "lucide-react";
+import { toast } from "sonner";
+import { openWhatsAppChat } from "@/lib/whatsapp";
 
 interface LocationData {
   distance: string;
@@ -24,6 +26,11 @@ interface LocationData {
 }
 
 export default function Track() {
+  // Hospital coords — demo: NeXora General Hospital, Bangalore
+  const HOSPITAL = { lat: 12.9716, lng: 77.5946, name: "NeXora General Hospital" };
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
+
   const [locationData, setLocationData] = useState<LocationData>({
     distance: "2.3 km",
     duration: "8 minutes",
@@ -32,7 +39,7 @@ export default function Track() {
   });
   const [isTracking, setIsTracking] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(new Date());
-  const [ambulanceDetails, setAmbulanceDetails] = useState({
+  const [ambulanceDetails] = useState({
     vehicleNumber: "KA-01-AB-1234",
     driverName: "Rajesh Kumar",
     driverPhone: "+91-98765-43210",
@@ -40,12 +47,54 @@ export default function Track() {
     paramedicPhone: "+91-98765-43211"
   });
 
+  const haversine = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+    const R = 6371;
+    const dLat = ((b.lat - a.lat) * Math.PI) / 180;
+    const dLng = ((b.lng - a.lng) * Math.PI) / 180;
+    const x =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((a.lat * Math.PI) / 180) * Math.cos((b.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+  };
+
+  const requestGeo = () => {
+    if (!("geolocation" in navigator)) {
+      setGeoError("Geolocation not supported by this browser");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        const pos = { lat: p.coords.latitude, lng: p.coords.longitude };
+        setUserPos(pos);
+        const km = haversine(pos, HOSPITAL);
+        const mins = Math.max(2, Math.round(km * 2.5));
+        setLocationData((prev) => ({
+          ...prev,
+          distance: `${km.toFixed(1)} km`,
+          duration: `${mins} minutes`,
+          ambulanceETA: prev.ambulanceStatus === "not-requested" ? `${mins + 4} minutes` : prev.ambulanceETA,
+        }));
+        setGeoError(null);
+        toast.success("Live location updated");
+      },
+      (err) => {
+        setGeoError(err.message || "Unable to access location");
+        toast.error("Location access denied. Using default values.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  useEffect(() => {
+    requestGeo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const refreshLocation = () => {
     setIsTracking(true);
-    setTimeout(() => {
-      setLastUpdated(new Date());
-      setIsTracking(false);
-    }, 2000);
+    requestGeo();
+    setLastUpdated(new Date());
+    setTimeout(() => setIsTracking(false), 800);
   };
 
   const requestAmbulance = () => {
@@ -54,6 +103,8 @@ export default function Track() {
       ambulanceStatus: "dispatched",
       ambulanceETA: "15 minutes"
     }));
+    openWhatsAppChat(`🚑 Ambulance dispatch requested for patient near ${userPos ? `${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}` : "current location"}.`);
+    toast.success("Ambulance dispatched! ETA 15 minutes");
   };
 
   useEffect(() => {
@@ -80,9 +131,24 @@ export default function Track() {
 
   const handleContactAmbulance = () => {
     if (locationData.ambulanceStatus !== "not-requested") {
-      // Simulate calling ambulance
-      alert(`Connecting to ambulance driver: ${ambulanceDetails.driverName} at ${ambulanceDetails.driverPhone}`);
+      window.open(`tel:${ambulanceDetails.driverPhone.replace(/[^+\d]/g, "")}`, "_self");
+      toast.success(`Calling ${ambulanceDetails.driverName}...`);
     }
+  };
+
+  // Build OSM embed URL — bbox around user, marker at user position
+  const center = userPos ?? HOSPITAL;
+  const bbox = `${center.lng - 0.05},${center.lat - 0.04},${center.lng + 0.05},${center.lat + 0.04}`;
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${center.lat},${center.lng}`;
+  const shareLocation = () => {
+    if (!userPos) return toast.error("Location not available yet");
+    const text = `📍 My current location: https://maps.google.com/?q=${userPos.lat},${userPos.lng}`;
+    if (navigator.share) {
+      navigator.share({ title: "My Location", text }).catch(() => openWhatsAppChat(text));
+    } else {
+      openWhatsAppChat(text);
+    }
+    toast.success("Location shared");
   };
 
   return (
@@ -291,19 +357,22 @@ export default function Track() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <Navigation className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Interactive Map
-                </h3>
-                <p className="text-muted-foreground max-w-md">
-                  Live GPS tracking showing your current location, the hospital, and the optimal route. 
-                  Ambulance location is updated in real-time when requested.
-                </p>
-                <div className="mt-4 text-sm text-muted-foreground">
-                  Last updated: {lastUpdated.toLocaleTimeString()}
-                </div>
+            <div className="aspect-video rounded-lg overflow-hidden border">
+              <iframe
+                title="Live Map"
+                src={mapUrl}
+                className="w-full h-full"
+                loading="lazy"
+              />
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between text-sm gap-2">
+              <div className="text-muted-foreground">
+                {userPos
+                  ? `📍 ${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}`
+                  : geoError || "Detecting your location..."}
+              </div>
+              <div className="text-muted-foreground">
+                Last updated: {lastUpdated.toLocaleTimeString()}
               </div>
             </div>
           </CardContent>
@@ -321,7 +390,7 @@ export default function Track() {
                   <h3 className="font-semibold text-foreground">Emergency Hotline</h3>
                   <p className="text-sm text-muted-foreground">Direct line to emergency services</p>
                 </div>
-                <Button variant="emergency">Call 108</Button>
+                <Button variant="emergency" onClick={() => window.open("tel:108", "_self")}>Call 108</Button>
               </div>
             </CardContent>
           </Card>
@@ -336,7 +405,7 @@ export default function Track() {
                   <h3 className="font-semibold text-foreground">Share Location</h3>
                   <p className="text-sm text-muted-foreground">Send location to emergency contact</p>
                 </div>
-                <Button variant="outline">Share</Button>
+                <Button variant="outline" onClick={shareLocation}>Share</Button>
               </div>
             </CardContent>
           </Card>
