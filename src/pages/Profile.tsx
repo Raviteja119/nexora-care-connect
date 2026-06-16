@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,13 @@ import {
   Clock,
   Save,
   Edit,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  Download,
+  FileText
 } from "lucide-react";
+import { toast } from "sonner";
+import { downloadTextFile, readFileAsDataURL } from "@/lib/fileUtils";
 
 const emergencyContacts = [
   { name: "John Smith", relation: "Spouse", phone: "+1 (555) 0123" },
@@ -34,6 +39,10 @@ const medicalHistory = [
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<{ name: string; url: string; size: number }[]>([]);
+  const avatarRef = useRef<HTMLInputElement>(null);
+  const docRef = useRef<HTMLInputElement>(null);
   const [profileData, setProfileData] = useState({
     firstName: "John",
     lastName: "Doe",
@@ -48,7 +57,31 @@ export default function Profile() {
 
   const handleSave = () => {
     setIsEditing(false);
-    // In a real app, this would sync with the backend
+    toast.success("Profile saved successfully");
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const data = await readFileAsDataURL(f);
+    setAvatar(data);
+    toast.success("Profile photo updated");
+    e.target.value = "";
+  };
+
+  const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    setDocuments((prev) => [...prev, { name: f.name, url, size: f.size }]);
+    toast.success(`Uploaded ${f.name}`);
+    e.target.value = "";
+  };
+
+  const downloadProfile = () => {
+    const text = `NeXora Patient Profile\n========================\nName: ${profileData.firstName} ${profileData.lastName}\nEmail: ${profileData.email}\nPhone: ${profileData.phone}\nAddress: ${profileData.address}\nDOB: ${profileData.dateOfBirth}\nBlood Type: ${profileData.bloodType}\nAllergies: ${profileData.allergies}\nMedications: ${profileData.currentMedications}\n`;
+    downloadTextFile("nexora-profile.txt", text);
+    toast.success("Profile downloaded");
   };
 
   return (
@@ -57,14 +90,29 @@ export default function Profile() {
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Profile & Medical Information
-            </h1>
-            <p className="text-muted-foreground">
-              Keep your information up to date for better healthcare service
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border">
+                {avatar ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" /> : <User className="h-8 w-8 text-primary" />}
+              </div>
+              <input ref={avatarRef} type="file" accept="image/*" hidden onChange={handleAvatarUpload} />
+              <button
+                onClick={() => avatarRef.current?.click()}
+                className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1 hover:opacity-90"
+                title="Change photo"
+              >
+                <Upload className="h-3 w-3" />
+              </button>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-1">Profile & Medical Information</h1>
+              <p className="text-muted-foreground">Keep your information up to date for better healthcare service</p>
+            </div>
           </div>
+          <div className="flex gap-2">
+          <Button variant="outline" onClick={downloadProfile}>
+            <Download className="h-4 w-4 mr-2" /> Export
+          </Button>
           <Button
             variant={isEditing ? "success" : "outline"}
             onClick={isEditing ? handleSave : () => setIsEditing(true)}
@@ -73,13 +121,15 @@ export default function Profile() {
             {isEditing ? <Save className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
             <span>{isEditing ? "Save Changes" : "Edit Profile"}</span>
           </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="personal">Personal Info</TabsTrigger>
             <TabsTrigger value="medical">Medical History</TabsTrigger>
             <TabsTrigger value="emergency">Emergency Contacts</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
           </TabsList>
 
