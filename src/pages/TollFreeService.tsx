@@ -46,7 +46,7 @@ export default function TollFreeService() {
   const [callDuration, setCallDuration] = useState(0);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isCallActive) {
       interval = setInterval(() => {
         setCallDuration(prev => prev + 1);

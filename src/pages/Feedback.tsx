@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, MessageSquare, ThumbsUp, Send, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
 
 const feedbackHistory = [
   {
@@ -66,25 +67,13 @@ export default function Feedback() {
   };
 
   const handleSubmit = () => {
-    // Simulate feedback submission
-    console.log({
-      rating,
-      feedbackType,
-      service,
-      comment,
-      email,
-      name
-    });
-    
-    // Reset form
+    toast.success("Thank you for your feedback! We will review it shortly.", { duration: 4000 });
     setRating(0);
     setFeedbackType("");
     setService("");
     setComment("");
     setEmail("");
     setName("");
-    
-    alert("Thank you for your feedback! We appreciate your input and will review it shortly.");
   };
 
   const getRatingColor = (rating: number) => {

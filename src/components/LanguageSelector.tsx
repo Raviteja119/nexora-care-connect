@@ -1,44 +1,34 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Globe } from "lucide-react";
+import { useLanguage, LangCode } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 
 const languages = [
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "es", name: "Español", flag: "🇪🇸" },
-  { code: "fr", name: "Français", flag: "🇫🇷" },
-  { code: "de", name: "Deutsch", flag: "🇩🇪" },
-  { code: "zh", name: "中文", flag: "🇨🇳" },
-  { code: "ja", name: "日本語", flag: "🇯🇵" },
-  { code: "ko", name: "한국어", flag: "🇰🇷" },
-  { code: "ar", name: "العربية", flag: "🇸🇦" },
-  { code: "hi", name: "हिन्दी", flag: "🇮🇳" },
-  { code: "pt", name: "Português", flag: "🇧🇷" }
+  { code: "en" as LangCode, name: "English", flag: "🇺🇸" },
+  { code: "hi" as LangCode, name: "हिन्दी", flag: "🇮🇳" },
+  { code: "ta" as LangCode, name: "தமிழ்", flag: "🇮🇳" },
+  { code: "te" as LangCode, name: "తెలుగు", flag: "🇮🇳" },
+  { code: "kn" as LangCode, name: "ಕನ್ನಡ", flag: "🇮🇳" },
+  { code: "ml" as LangCode, name: "മലയാളം", flag: "🇮🇳" },
+  { code: "es" as LangCode, name: "Español", flag: "🇪🇸" },
+  { code: "fr" as LangCode, name: "Français", flag: "🇫🇷" },
+  { code: "ar" as LangCode, name: "العربية", flag: "🇸🇦" },
 ];
 
-interface LanguageSelectorProps {
-  onLanguageChange?: (language: string) => void;
-}
+export function LanguageSelector() {
+  const { lang, setLang } = useLanguage();
 
-export function LanguageSelector({ onLanguageChange }: LanguageSelectorProps) {
-  const [selectedLanguage, setSelectedLanguage] = useState("en");
-
-  const handleLanguageChange = (languageCode: string) => {
-    setSelectedLanguage(languageCode);
-    onLanguageChange?.(languageCode);
-    
-    // Here you would typically integrate with an i18n library
-    // For now, we'll just show an alert as a demo
-    const selectedLang = languages.find(lang => lang.code === languageCode);
-    if (selectedLang) {
-      console.log(`Language changed to: ${selectedLang.name}`);
-    }
+  const handleLanguageChange = (code: string) => {
+    const c = code as LangCode;
+    setLang(c);
+    const selected = languages.find((l) => l.code === c);
+    if (selected) toast.success(`Language changed to ${selected.name}`);
   };
 
-  const currentLanguage = languages.find(lang => lang.code === selectedLanguage);
+  const currentLanguage = languages.find((l) => l.code === lang);
 
   return (
-    <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
+    <Select value={lang} onValueChange={handleLanguageChange}>
       <SelectTrigger className="w-[150px]">
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4" />

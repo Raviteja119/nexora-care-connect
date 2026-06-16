@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Phone, Video, Paperclip, MoreVertical, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
+import { openWhatsAppVideoCall } from "@/lib/whatsapp";
 
 interface Message {
   id: string;
@@ -12,6 +14,7 @@ interface Message {
   timestamp: string;
   staffName?: string;
   staffRole?: string;
+  attachment?: { name: string; url: string };
 }
 
 const mockMessages: Message[] = [
@@ -31,30 +34,63 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [newMessage, setNewMessage] = useState("");
   const [selectedStaff, setSelectedStaff] = useState(staffMembers[0]);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
-  useEffect(() => { scrollToBottom(); }, [messages]);
+  useEffect(() => { scrollToBottom(); }, [messages, isTyping]);
+
+  const smartReply = (text: string, role: string) => {
+    const lower = text.toLowerCase();
+    if (lower.includes("appointment")) return "Your appointment with Dr. Michael Chen is confirmed for tomorrow at 2:00 PM. Do you need directions or a reminder?";
+    if (lower.includes("bill") || lower.includes("payment") || lower.includes("insurance")) return "I can help with billing. Your last invoice #INV-2421 was ₹3,450 — fully paid. Need a receipt?";
+    if (lower.includes("bed") || lower.includes("admission")) return "We have 23 General, 15 ICU and 9 Special Care beds available right now. Would you like me to reserve one?";
+    if (lower.includes("prescription") || lower.includes("medicine") || lower.includes("refill")) return "Sure — I see your active Rx for Lisinopril 10mg. I've raised a refill request with HealthCare Pharmacy.";
+    if (lower.includes("emergency") || lower.includes("ambulance")) return "Please head to the Emergency page and tap REQUEST EMERGENCY HELP. Staying on this chat for support.";
+    if (lower.includes("doctor")) return "Dr. Sarah Wilson (Cardiology) is Available now. Want me to book a slot or start a video call?";
+    if (lower.includes("thank")) return "You're welcome! Anything else I can help you with today? 😊";
+    return `Thanks for the details. I've noted this and our ${role} team will follow up shortly. Anything else?`;
+  };
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
     const msg: Message = { id: Date.now().toString(), sender: "user", content: newMessage, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    const userText = newMessage;
     setMessages(prev => [...prev, msg]);
     setNewMessage("");
+    setIsTyping(true);
 
     // Simulate staff reply
     setTimeout(() => {
       const staffMsg: Message = {
         id: (Date.now() + 1).toString(),
         sender: "staff",
-        content: "Thank you for your message. I'm looking into this for you.",
+        content: smartReply(userText, selectedStaff.role),
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         staffName: selectedStaff.name,
         staffRole: selectedStaff.role
       };
       setMessages(prev => [...prev, staffMsg]);
-    }, 1000);
+      setIsTyping(false);
+    }, 1200);
+  };
+
+  const handleAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const msg: Message = {
+      id: Date.now().toString(),
+      sender: "user",
+      content: `📎 Sent file: ${file.name}`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      attachment: { name: file.name, url },
+    };
+    setMessages((prev) => [...prev, msg]);
+    toast.success(`File "${file.name}" attached`);
+    e.target.value = "";
   };
 
   const getStatusColor = (status: string) => {
@@ -112,9 +148,9 @@ export default function Chat() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm"><Phone className="h-4 w-4" /></Button>
-                  <Button variant="outline" size="sm"><Video className="h-4 w-4" /></Button>
-                  <Button variant="outline" size="sm"><MoreVertical className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="sm" onClick={() => window.open("tel:+919491966048", "_self")}><Phone className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="sm" onClick={() => openWhatsAppVideoCall(`Patient requesting video call with ${selectedStaff.name} (${selectedStaff.role})`)}><Video className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="sm" onClick={() => toast.info("Options: Mute • Block • Export chat")}><MoreVertical className="h-4 w-4" /></Button>
                 </div>
               </div>
             </CardHeader>
@@ -126,17 +162,30 @@ export default function Chat() {
                     {msg.sender === 'staff' && <div className="text-xs text-muted-foreground mb-1">{msg.staffName} • {msg.staffRole}</div>}
                     <div className={`p-3 rounded-lg ${msg.sender === 'user' ? 'bg-medical-primary text-white' : 'bg-muted'}`}>
                       <p className="text-sm">{msg.content}</p>
+                      {msg.attachment && (
+                        <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" download={msg.attachment.name} className="text-xs underline block mt-1">
+                          Download {msg.attachment.name}
+                        </a>
+                      )}
                       <p className={`text-xs mt-1 ${msg.sender === 'user' ? 'text-white/70' : 'text-muted-foreground'}`}>{msg.timestamp}</p>
                     </div>
                   </div>
                 </div>
               ))}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-muted px-3 py-2 rounded-lg text-sm text-muted-foreground">
+                    {selectedStaff.name} is typing<span className="animate-pulse">...</span>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </CardContent>
 
             <div className="border-t p-4">
               <div className="flex gap-2">
-                <Button variant="outline" size="sm"><Paperclip className="h-4 w-4" /></Button>
+                <input ref={fileRef} type="file" hidden onChange={handleAttach} />
+                <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}><Paperclip className="h-4 w-4" /></Button>
                 <Input
                   placeholder="Type your message..."
                   value={newMessage}

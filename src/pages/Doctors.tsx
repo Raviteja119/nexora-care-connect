@@ -13,9 +13,12 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  Coffee
+  Coffee,
+  Video
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { openWhatsAppVideoCall } from "@/lib/whatsapp";
+import { toast } from "sonner";
 
 const doctors = [
   {
@@ -240,8 +243,17 @@ export default function Doctors() {
                            doctor.status === "On Leave" ? "Not Available" : "Join Waitlist"}
                         </Button>
                       </Link>
-                      <Button variant="outline" className="w-full">
-                        View Profile
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={doctor.status === "On Leave"}
+                        onClick={() => {
+                          openWhatsAppVideoCall(`Patient requesting video consult with ${doctor.name} (${doctor.specialty}).`);
+                          toast.success("Opening WhatsApp video call...");
+                        }}
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Video Call
                       </Button>
                     </div>
                   </div>

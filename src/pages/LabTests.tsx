@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TestTube, Calendar as CalendarIcon, Clock, Download, Eye, Search } from "lucide-react";
+import { toast } from "sonner";
+import { downloadTextFile } from "@/lib/fileUtils";
+import { useRef } from "react";
 
 const mockLabTests = [
   {
@@ -63,6 +66,30 @@ export default function LabTests() {
   const [selectedTime, setSelectedTime] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLabTest, setSelectedLabTest] = useState(mockLabTests[0]);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const buildReport = (t: typeof mockLabTests[0]) => {
+    let s = `NeXora Hospital - Lab Report\n============================\n\nTest: ${t.testName}\nID: ${t.id}\nOrdered by: ${t.orderedBy}\nOrdered: ${t.dateOrdered}\nCompleted: ${t.dateCompleted ?? "Pending"}\nStatus: ${t.status}\n\n`;
+    if (t.results) {
+      s += `Results:\n`;
+      for (const [k, v] of Object.entries(t.results)) {
+        s += `  - ${k}: ${v.value} ${v.unit} (Normal: ${v.range}) - ${v.status}\n`;
+      }
+    }
+    return s;
+  };
+
+  const downloadReport = (t: typeof mockLabTests[0]) => {
+    downloadTextFile(`${t.id}-lab-report.txt`, buildReport(t));
+    toast.success(`Downloaded ${t.id}-lab-report.txt`);
+  };
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    toast.success(`Uploaded "${f.name}" — ${(f.size / 1024).toFixed(1)} KB`);
+    e.target.value = "";
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -85,7 +112,7 @@ export default function LabTests() {
   const handleBookTest = () => {
     if (selectedTest && selectedTime && selectedDate) {
       const testName = filteredTests.find(t => t.id === selectedTest)?.name;
-      alert(`Lab test booked: ${testName} on ${selectedDate.toDateString()} at ${selectedTime}`);
+      toast.success(`Lab test booked: ${testName} on ${selectedDate.toDateString()} at ${selectedTime}`);
       setSelectedTest("");
       setSelectedTime("");
       setSelectedDate(new Date());
@@ -203,13 +230,17 @@ export default function LabTests() {
                           ))}
                         </div>
                         <div className="flex gap-2 mt-4">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => toast.info(`Viewing full report for ${selectedLabTest.id}`)}>
                             <Eye className="h-4 w-4 mr-2" />
                             View Full Report
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => downloadReport(selectedLabTest)}>
                             <Download className="h-4 w-4 mr-2" />
-                            Download PDF
+                            Download Report
+                          </Button>
+                          <input ref={fileRef} type="file" hidden onChange={handleUpload} />
+                          <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
+                            Upload Prescription
                           </Button>
                         </div>
                       </div>

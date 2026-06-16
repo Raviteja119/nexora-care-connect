@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Navbar } from "@/components/Navbar";
 import { Bed, Users, Heart, Stethoscope, RefreshCw, Clock, CreditCard } from "lucide-react";
+import { toast } from "sonner";
 
 const bedTypes = [
   {
@@ -85,7 +86,7 @@ export default function Beds() {
 
   const handleBookingSubmit = () => {
     if (selectedBedType && bookingData.patientName && bookingData.contactNumber) {
-      alert(`Bed booking request submitted for ${selectedBedType.type}. You will receive confirmation within 15 minutes.`);
+      toast.success(`Bed booking request submitted for ${selectedBedType.type}. Confirmation in ~15 minutes.`, { duration: 5000 });
       setSelectedBedType(null);
       setBookingData({
         patientName: "",

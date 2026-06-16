@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Video, Calendar as CalendarIcon, Clock, User, Phone, PhoneOff } from "lucide-react";
+import { openWhatsAppVideoCall, WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import { toast } from "sonner";
 
 const mockVideoAppointments = [
   {
@@ -57,18 +59,17 @@ export default function VideoCall() {
     }
   };
 
-  const handleJoinCall = (meetingLink: string) => {
+  const handleJoinCall = (doctorName: string) => {
+    openWhatsAppVideoCall(`Patient ready to join video consultation with ${doctorName}.`);
+    toast.success("Opening WhatsApp video call...");
     setInCall(true);
-    // Simulate video call interface
-    setTimeout(() => {
-      setInCall(false);
-    }, 10000); // Extended to 10 seconds for better demo
+    setTimeout(() => setInCall(false), 8000);
   };
 
   const handleScheduleAppointment = () => {
     if (selectedDoctor && selectedTime && selectedDate) {
-      // Simulate scheduling
-      alert(`Video appointment scheduled with ${availableDoctors.find(d => d.id === selectedDoctor)?.name} on ${selectedDate.toDateString()} at ${selectedTime}`);
+      const docName = availableDoctors.find(d => d.id === selectedDoctor)?.name;
+      toast.success(`Video appointment scheduled with ${docName} on ${selectedDate.toDateString()} at ${selectedTime}`);
       setSelectedDoctor("");
       setSelectedTime("");
       setSelectedDate(new Date());
@@ -82,14 +83,14 @@ export default function VideoCall() {
           <div className="w-80 h-60 bg-gray-800 rounded-lg mb-4 flex items-center justify-center relative">
             <User className="h-20 w-20 text-gray-400" />
             <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
-              Connected
+              Connecting via WhatsApp...
             </div>
             <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-              Dr. Johnson
+              +{WHATSAPP_NUMBER}
             </div>
           </div>
-          <h2 className="text-xl font-semibold mb-2">Video Consultation Active</h2>
-          <p className="text-gray-300 mb-4">You are now connected with your doctor</p>
+          <h2 className="text-xl font-semibold mb-2">WhatsApp Video Consultation</h2>
+          <p className="text-gray-300 mb-4">Continue the call in the WhatsApp window that just opened</p>
           <div className="flex gap-4 justify-center">
             <Button
               variant="outline"
@@ -158,20 +159,20 @@ export default function VideoCall() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      {appointment.status === "Scheduled" && (
+                       {appointment.status === "Scheduled" && (
                         <Button 
-                          onClick={() => handleJoinCall(appointment.meetingLink)}
+                          onClick={() => handleJoinCall(appointment.doctorName)}
                           className="bg-medical-primary hover:bg-medical-primary/90"
                         >
                           <Video className="h-4 w-4 mr-2" />
-                          Join Call
+                          Join WhatsApp Call
                         </Button>
                       )}
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => toast.info(`Appointment ${appointment.id} • ${appointment.duration}`)}>
                         View Details
                       </Button>
                       {appointment.status === "Scheduled" && (
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={() => toast.success("Reschedule request sent for review")}>
                           Reschedule
                         </Button>
                       )}
