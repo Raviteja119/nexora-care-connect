@@ -9,6 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Navbar } from "@/components/Navbar";
 import { Phone, TriangleAlert as AlertTriangle, Heart, Car, Baby, Activity, MapPin, Clock, User, Zap, Volume2, Play, Pause, Video, Languages } from "lucide-react";
 import emergencyBg from "@/assets/emergency-bg.jpg";
+import { openWhatsAppVideoCall, openWhatsAppChat } from "@/lib/whatsapp";
+import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const emergencyTypes = [
   { value: "cardiac", label: "Cardiac Emergency", icon: Heart, color: "text-red-500" },
@@ -126,11 +129,20 @@ export default function Emergency() {
   };
 
   const handleVideoCall = () => {
+    const type = emergencyTypes.find((t) => t.value === selectedEmergency)?.label ?? "Emergency";
+    openWhatsAppVideoCall(`🚨 EMERGENCY: ${type}\nPatient needs immediate video consultation with on-call doctor.`);
+    toast.success("Opening WhatsApp emergency video call...");
     setVideoCallActive(true);
-    // Simulate video call connection
-    setTimeout(() => {
-      setVideoCallActive(false);
-    }, 15000);
+    setTimeout(() => setVideoCallActive(false), 8000);
+  };
+
+  const handleEmergencyRequestWithAlert = () => {
+    handleEmergencyRequest();
+    const type = emergencyTypes.find((t) => t.value === selectedEmergency)?.label ?? "Emergency";
+    openWhatsAppChat(
+      `🚨 EMERGENCY ALERT - ${type}\n\nA patient has requested emergency ambulance dispatch via NeXora.\n\nDetails: ${additionalInfo || "No additional info provided"}\n\nPlease confirm dispatch and ETA.`,
+    );
+    toast.success("Emergency alert sent to hospital via WhatsApp", { duration: 5000 });
   };
 
   if (videoCallActive) {
@@ -283,7 +295,7 @@ export default function Emergency() {
                     variant="emergency"
                     size="lg"
                     className="text-xl px-12 py-6 h-auto shadow-lg hover:shadow-xl animate-pulse"
-                    onClick={handleEmergencyRequest}
+                    onClick={handleEmergencyRequestWithAlert}
                     disabled={!selectedEmergency}
                   >
                     <Phone className="h-6 w-6 mr-3" />
@@ -291,7 +303,8 @@ export default function Emergency() {
                   </Button>
 
                   <div className="text-sm text-muted-foreground">
-                    Or call directly: <span className="font-bold text-destructive">108</span>
+                    Or call directly:{" "}
+                    <a href="tel:108" className="font-bold text-destructive underline">108</a>
                   </div>
                 </div>
               </CardContent>
@@ -368,9 +381,14 @@ export default function Emergency() {
                   </div>
 
                   <div className="space-y-4">
-                    <Button variant="outline" className="w-full" onClick={() => setEmergencyRequested(false)}>
+                     <Button variant="outline" className="w-full" onClick={() => setEmergencyRequested(false)}>
                       Send Another Emergency Request
                     </Button>
+                    <Link to="/track" className="block">
+                      <Button variant="default" className="w-full">
+                        <MapPin className="h-4 w-4 mr-2" /> Track Ambulance Live
+                      </Button>
+                    </Link>
                     <div className="text-sm text-muted-foreground">
                       Emergency ID: <span className="font-mono">EMG-{Date.now().toString().slice(-6)}</span>
                     </div>
