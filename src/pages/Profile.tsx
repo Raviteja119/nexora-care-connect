@@ -327,6 +327,59 @@ export default function Profile() {
             </Card>
           </TabsContent>
 
+          {/* Documents */}
+          <TabsContent value="documents" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <span>My Documents</span>
+                </CardTitle>
+                <CardDescription>Upload and download your medical records, reports and ID documents</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <input ref={docRef} type="file" hidden onChange={handleDocUpload} />
+                <Button variant="outline" onClick={() => docRef.current?.click()}>
+                  <Upload className="h-4 w-4 mr-2" /> Upload Document
+                </Button>
+                {documents.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No documents uploaded yet.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {documents.map((d, i) => (
+                      <div key={i} className="flex items-center justify-between border rounded p-3">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-primary" />
+                          <div>
+                            <p className="font-medium text-sm">{d.name}</p>
+                            <p className="text-xs text-muted-foreground">{(d.size / 1024).toFixed(1)} KB</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <a href={d.url} download={d.name}>
+                            <Button variant="outline" size="sm">
+                              <Download className="h-4 w-4 mr-1" /> Download
+                            </Button>
+                          </a>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setDocuments((prev) => prev.filter((_, idx) => idx !== i));
+                              toast.success("Document removed");
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Preferences */}
           <TabsContent value="preferences" className="space-y-6">
             <Card>
