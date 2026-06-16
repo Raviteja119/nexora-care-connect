@@ -18,24 +18,28 @@ import {
 import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
 
-const navItems = [
-  { name: "Home", path: "/dashboard", icon: Home },
-  { name: "Beds", path: "/beds", icon: Bed },
-  { name: "Appointments", path: "/appointments", icon: UserCheck },
-  { name: "Emergency", path: "/emergency", icon: Phone },
-  { name: "Track", path: "/track", icon: MapPin },
-  { name: "Prescriptions", path: "/prescriptions", icon: Pill },
-  { name: "Video Call", path: "/video-call", icon: Video },
-  { name: "Lab Tests", path: "/lab-tests", icon: TestTube },
-  { name: "Chat", path: "/chat", icon: MessageCircle },
-  { name: "Education", path: "/health-education", icon: BookOpen },
-  { name: "Feedback", path: "/feedback", icon: Star },
+const navItemsRaw = [
+  { key: "nav.home", path: "/dashboard", icon: Home },
+  { key: "nav.beds", path: "/beds", icon: Bed },
+  { key: "nav.appointments", path: "/appointments", icon: UserCheck },
+  { key: "nav.emergency", path: "/emergency", icon: Phone },
+  { key: "nav.track", path: "/track", icon: MapPin },
+  { key: "nav.prescriptions", path: "/prescriptions", icon: Pill },
+  { key: "nav.videoCall", path: "/video-call", icon: Video },
+  { key: "nav.labTests", path: "/lab-tests", icon: TestTube },
+  { key: "nav.chat", path: "/chat", icon: MessageCircle },
+  { key: "nav.education", path: "/health-education", icon: BookOpen },
+  { key: "nav.feedback", path: "/feedback", icon: Star },
 ];
 
 export function Navbar() {
   const location = useLocation();
+  const { t } = useLanguage();
   const isActive = (path: string) => location.pathname === path;
+  const navItems = navItemsRaw.map((n) => ({ ...n, name: t(n.key) }));
 
   return (
     <nav className="bg-card border-b border-border shadow-sm overflow-x-auto whitespace-nowrap">
@@ -84,13 +88,13 @@ export function Navbar() {
                 className="flex items-center space-x-2"
               >
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Profile</span>
+                <span className="hidden sm:inline">{t("nav.profile")}</span>
               </Button>
             </Link>
-            <Link to="/login">
+            <Link to="/login" onClick={() => toast.success("Logged out successfully")}>
               <Button variant="outline" size="sm">
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline ml-2">Logout</span>
+                <span className="hidden sm:inline ml-2">{t("nav.logout")}</span>
               </Button>
             </Link>
           </div>
