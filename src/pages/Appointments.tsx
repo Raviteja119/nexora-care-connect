@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/Navbar";
 import { Calendar as CalendarIcon, Clock, Stethoscope, Plus, CircleCheck as CheckCircle, Circle as XCircle, RotateCcw, Eye } from "lucide-react";
+import { toast } from "sonner";
 
 // Dummy data
 const upcomingAppointments = [
@@ -138,12 +139,12 @@ function AppointmentCard({ appointment, isUpcoming = false, onReschedule, onCanc
           <Badge variant={getStatusColor(appointment.status)}><StatusIcon className="h-3 w-3 mr-1" />{appointment.status}</Badge>
           {isUpcoming && (
             <div className="flex space-x-2">
-              <RescheduleDialog appointmentId={appointment.id} onSubmit={(date,time,reason)=>{alert(`Reschedule submitted for ${appointment.id} to ${date.toLocaleDateString()} at ${time}`)}} />
-              <Button variant="destructive" size="sm" onClick={()=>alert(`Cancelled ${appointment.id}`)}>Cancel</Button>
+              <RescheduleDialog appointmentId={appointment.id} onSubmit={(date,time)=>toast.success(`Reschedule submitted to ${date.toLocaleDateString()} at ${time}`)} />
+              <Button variant="destructive" size="sm" onClick={()=>toast.success(`Appointment #${appointment.id} cancelled`)}>Cancel</Button>
             </div>
           )}
           {!isUpcoming && (
-            <Button variant="outline" size="sm" onClick={()=>alert(`Viewing report for ${appointment.id}`)}>
+            <Button variant="outline" size="sm" onClick={()=>toast.info(`Viewing report for appointment #${appointment.id}`)}>
               <Eye className="h-4 w-4 mr-1" />View Report
             </Button>
           )}
@@ -238,7 +239,7 @@ export default function Appointments() {
                     variant="default" 
                     className="w-full"
                     disabled={!selectedDate || !selectedSpecialty || !selectedTime}
-                    onClick={()=>alert(`Appointment booked on ${selectedDate?.toLocaleDateString()} at ${selectedTime} for ${selectedSpecialty}`)}
+                    onClick={()=>toast.success(`Appointment booked on ${selectedDate?.toLocaleDateString()} at ${selectedTime} for ${selectedSpecialty}`)}
                   >
                     Book Appointment
                   </Button>
