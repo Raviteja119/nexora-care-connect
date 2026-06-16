@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, Eye, Pill, Clock, User, RefreshCw, Phone, MapPin } from "lucide-react";
+import { toast } from "sonner";
+import { downloadTextFile } from "@/lib/fileUtils";
 
 const mockPrescriptions = [
   {
@@ -59,6 +61,32 @@ const completedPrescriptions = mockPrescriptions.filter(p => p.status === "Compl
 
 export default function Prescriptions() {
   const [selectedPrescription, setSelectedPrescription] = useState(mockPrescriptions[0]);
+
+  const buildText = (p: typeof mockPrescriptions[0]) =>
+    `NeXora Hospital - Medical Prescription\n` +
+    `=========================================\n\n` +
+    `Prescription ID: ${p.id}\n` +
+    `Doctor: ${p.doctorName}\n` +
+    `Date: ${p.date}\n` +
+    `Diagnosis: ${p.diagnosis}\n\n` +
+    `Medications:\n` +
+    p.medications
+      .map((m, i) => `  ${i + 1}. ${m.name} - ${m.dosage} - ${m.frequency} for ${m.duration}`)
+      .join("\n") +
+    `\n\nInstructions: ${p.instructions}\n\n` +
+    `Pharmacy: ${p.pharmacy} (${p.pharmacyPhone})\n` +
+    `Refills remaining: ${p.refillsRemaining}\n`;
+
+  const handleDownload = (p: typeof mockPrescriptions[0]) => {
+    downloadTextFile(`${p.id}-prescription.txt`, buildText(p));
+    toast.success(`Downloaded ${p.id}-prescription.txt`);
+  };
+  const handleRefill = (p: typeof mockPrescriptions[0]) => {
+    toast.success(`Refill request sent to ${p.pharmacy}`);
+  };
+  const handleCallPharmacy = (p: typeof mockPrescriptions[0]) => {
+    window.open(`tel:${p.pharmacyPhone.replace(/[^+\d]/g, "")}`, "_self");
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -205,21 +233,21 @@ export default function Prescriptions() {
                     )}
 
                     <div className="flex gap-2 flex-wrap">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => toast.info(`Viewing full Rx ${selectedPrescription.id}`)}>
                         <Eye className="h-4 w-4 mr-2" />
                         View Full
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleDownload(selectedPrescription)}>
                         <Download className="h-4 w-4 mr-2" />
-                        Download PDF
+                        Download
                       </Button>
                       {selectedPrescription.status === "Active" && (
                         <>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleRefill(selectedPrescription)}>
                             <RefreshCw className="h-4 w-4 mr-2" />
                             Request Refill
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleCallPharmacy(selectedPrescription)}>
                             <Phone className="h-4 w-4 mr-2" />
                             Call Pharmacy
                           </Button>
@@ -259,7 +287,7 @@ export default function Prescriptions() {
                       <Button variant="outline" size="sm" onClick={() => setSelectedPrescription(prescription)}>
                         View Details
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleRefill(prescription)}>
                         Request Refill
                       </Button>
                     </div>
