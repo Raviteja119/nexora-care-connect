@@ -112,7 +112,7 @@ export default function LabTests() {
   const handleBookTest = () => {
     if (selectedTest && selectedTime && selectedDate) {
       const testName = filteredTests.find(t => t.id === selectedTest)?.name;
-      alert(`Lab test booked: ${testName} on ${selectedDate.toDateString()} at ${selectedTime}`);
+      toast.success(`Lab test booked: ${testName} on ${selectedDate.toDateString()} at ${selectedTime}`);
       setSelectedTest("");
       setSelectedTime("");
       setSelectedDate(new Date());

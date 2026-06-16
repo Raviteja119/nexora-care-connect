@@ -326,7 +326,7 @@ export default function Track() {
                               <p className="font-medium">{ambulanceDetails.paramedic}</p>
                               <p className="text-sm text-muted-foreground">{ambulanceDetails.paramedicPhone}</p>
                             </div>
-                            <Button size="sm" onClick={() => alert(`Calling ${ambulanceDetails.paramedic} at ${ambulanceDetails.paramedicPhone}`)}>
+                            <Button size="sm" onClick={() => { window.open(`tel:${ambulanceDetails.paramedicPhone.replace(/[^+\d]/g, "")}`, "_self"); toast.success(`Calling ${ambulanceDetails.paramedic}...`); }}>
                               <Phone className="h-4 w-4 mr-1" />
                               Call
                             </Button>
