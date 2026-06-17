@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Video, Calendar as CalendarIcon, Clock, User, Phone, PhoneOff } from "lucide-react";
-import { openWhatsAppVideoCall, WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import { openWhatsAppVideoCall, WHATSAPP_NUMBER, ON_CALL_DOCTOR, callDoctor } from "@/lib/whatsapp";
 import { toast } from "sonner";
 
 const mockVideoAppointments = [
@@ -34,9 +34,12 @@ const mockVideoAppointments = [
 ];
 
 const availableDoctors = [
+  { id: "d0", name: "Dr. Teja", specialty: "On-Call Physician (WhatsApp)", available: true },
   { id: "d1", name: "Dr. Sarah Johnson", specialty: "Cardiology", available: true },
   { id: "d2", name: "Dr. Michael Chen", specialty: "General Medicine", available: true },
   { id: "d3", name: "Dr. Emily Davis", specialty: "Pediatrics", available: false },
+  { id: "d4", name: "Dr. Rajesh Kumar", specialty: "Orthopedics", available: true },
+  { id: "d5", name: "Dr. Priya Sharma", specialty: "Gynecology", available: true },
 ];
 
 const timeSlots = [
@@ -60,8 +63,8 @@ export default function VideoCall() {
   };
 
   const handleJoinCall = (doctorName: string) => {
-    openWhatsAppVideoCall(`Patient ready to join video consultation with ${doctorName}.`);
-    toast.success("Opening WhatsApp video call...");
+    openWhatsAppVideoCall(`Patient ready to join video consultation with ${doctorName}. Routing to ${ON_CALL_DOCTOR} for immediate assistance.`);
+    toast.success(`Opening WhatsApp call with ${ON_CALL_DOCTOR}...`);
     setInCall(true);
     setTimeout(() => setInCall(false), 8000);
   };
@@ -166,6 +169,11 @@ export default function VideoCall() {
                         >
                           <Video className="h-4 w-4 mr-2" />
                           Join WhatsApp Call
+                        </Button>
+                      )}
+                      {appointment.status === "Scheduled" && (
+                        <Button variant="outline" onClick={callDoctor}>
+                          <Phone className="h-4 w-4 mr-2" /> Normal Call
                         </Button>
                       )}
                       <Button variant="outline" size="sm" onClick={() => toast.info(`Appointment ${appointment.id} • ${appointment.duration}`)}>

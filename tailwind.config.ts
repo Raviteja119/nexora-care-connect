@@ -51,6 +51,10 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Aliases used across legacy components; map to semantic tokens
+        "medical-primary": "hsl(var(--primary))",
+        "medical-light": "hsl(var(--muted))",
+        "medical-muted": "hsl(var(--background))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

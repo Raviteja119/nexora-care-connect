@@ -26,6 +26,16 @@ const pastAppointments = [
 
 const specialties = ["Cardiology","Orthopedics","Dermatology","General Medicine","Pediatrics","Gynecology","Neurology","Ophthalmology"];
 const timeSlots = ["9:00 AM","9:30 AM","10:00 AM","10:30 AM","11:00 AM","11:30 AM","2:00 PM","2:30 PM","3:00 PM","3:30 PM","4:00 PM","4:30 PM","5:00 PM"];
+const doctorsBySpecialty: Record<string, string[]> = {
+  Cardiology: ["Dr. Sarah Wilson", "Dr. Anil Mehta"],
+  Orthopedics: ["Dr. Michael Chen", "Dr. Rajesh Kumar"],
+  Dermatology: ["Dr. Emily Davis"],
+  "General Medicine": ["Dr. James Thompson", "Dr. Teja"],
+  Pediatrics: ["Dr. Priya Sharma"],
+  Gynecology: ["Dr. Neha Reddy"],
+  Neurology: ["Dr. Ravi Iyer"],
+  Ophthalmology: ["Dr. Sneha Pillai"],
+};
 
 // Utility functions
 const getStatusColor = (status: string) => {
@@ -159,6 +169,8 @@ export default function Appointments() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [reason, setReason] = useState("");
 
   return (
     <div className="min-h-screen bg-background">
@@ -213,12 +225,26 @@ export default function Appointments() {
                 <CardContent className="space-y-6">
                   <div>
                     <Label>Select Specialty</Label>
-                    <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                    <Select value={selectedSpecialty} onValueChange={(v) => { setSelectedSpecialty(v); setSelectedDoctor(""); }}>
                       <SelectTrigger>
                         <SelectValue placeholder="Choose medical specialty" />
                       </SelectTrigger>
                       <SelectContent>
                         {specialties.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Select Doctor</Label>
+                    <Select value={selectedDoctor} onValueChange={setSelectedDoctor} disabled={!selectedSpecialty}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={selectedSpecialty ? "Choose a doctor" : "Select specialty first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(doctorsBySpecialty[selectedSpecialty] || []).map((d) => (
+                          <SelectItem key={d} value={d}>{d}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -235,11 +261,19 @@ export default function Appointments() {
                     </Select>
                   </div>
 
+                  <div>
+                    <Label>Reason for Visit (optional)</Label>
+                    <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Describe symptoms or reason" />
+                  </div>
+
                   <Button 
                     variant="default" 
                     className="w-full"
-                    disabled={!selectedDate || !selectedSpecialty || !selectedTime}
-                    onClick={()=>toast.success(`Appointment booked on ${selectedDate?.toLocaleDateString()} at ${selectedTime} for ${selectedSpecialty}`)}
+                    disabled={!selectedDate || !selectedSpecialty || !selectedDoctor || !selectedTime}
+                    onClick={() => {
+                      toast.success(`Appointment booked with ${selectedDoctor} (${selectedSpecialty}) on ${selectedDate?.toLocaleDateString()} at ${selectedTime}`);
+                      setSelectedSpecialty(""); setSelectedDoctor(""); setSelectedTime(""); setReason("");
+                    }}
                   >
                     Book Appointment
                   </Button>

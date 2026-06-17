@@ -7,11 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Navbar } from "@/components/Navbar";
-import { Phone, TriangleAlert as AlertTriangle, Heart, Car, Baby, Activity, MapPin, Clock, User, Zap, Volume2, Play, Pause, Video, Languages } from "lucide-react";
+import { Phone, TriangleAlert as AlertTriangle, Heart, Car, Baby, Activity, MapPin, Clock, User, Zap, Volume2, Play, Pause, Video, Languages, Flame, Pill as PillIcon, Brain, Bug, Droplet, Thermometer, Ear, Eye as EyeIcon } from "lucide-react";
 import emergencyBg from "@/assets/emergency-bg.jpg";
-import { openWhatsAppVideoCall, openWhatsAppChat } from "@/lib/whatsapp";
+import { openWhatsAppVideoCall, openWhatsAppChat, callDoctor, ON_CALL_DOCTOR } from "@/lib/whatsapp";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { useLanguage, ttsLangCode } from "@/contexts/LanguageContext";
 
 const emergencyTypes = [
   { value: "cardiac", label: "Cardiac Emergency", icon: Heart, color: "text-red-500" },
@@ -19,6 +20,14 @@ const emergencyTypes = [
   { value: "delivery", label: "Emergency Delivery", icon: Baby, color: "text-pink-500" },
   { value: "stroke", label: "Stroke/Neurological", icon: Activity, color: "text-purple-500" },
   { value: "respiratory", label: "Breathing Difficulty", icon: Zap, color: "text-blue-500" },
+  { value: "burns", label: "Burns / Fire", icon: Flame, color: "text-orange-600" },
+  { value: "poisoning", label: "Poisoning / Overdose", icon: PillIcon, color: "text-green-600" },
+  { value: "seizure", label: "Seizure / Epilepsy", icon: Brain, color: "text-indigo-500" },
+  { value: "choking", label: "Choking", icon: Activity, color: "text-rose-500" },
+  { value: "snakebite", label: "Snake / Insect Bite", icon: Bug, color: "text-emerald-600" },
+  { value: "bleeding", label: "Severe Bleeding", icon: Droplet, color: "text-red-700" },
+  { value: "fever", label: "High Fever / Dehydration", icon: Thermometer, color: "text-amber-500" },
+  { value: "mental", label: "Mental Health Crisis", icon: User, color: "text-violet-500" },
   { value: "other", label: "Other Emergency", icon: AlertTriangle, color: "text-yellow-500" },
 ];
 
@@ -82,10 +91,91 @@ const emergencyInstructions = {
       tamil: "அவசரநிலைகளுக்கு: அமைதியாகவும் எச்சரிக்கையாகவும் இருங்கள். பாதுகாப்பற்றதாக இல்லாத வரை நீங்கள் இருக்கும் இடத்திலேயே இருங்கள்।",
       telugu: "అత్యవసర పరిస్థితుల కోసం: ప్రశాంతంగా మరియు అప్రమత్తంగా ఉండండి. అసురక్షితం కాకపోతే మీరు ఉన్న చోటనే ఉండండి।"
     }
+  },
+  burns: {
+    title: "Burns / Fire Injury Instructions",
+    message: "Move away from the source of heat. Cool the burn under cool (not cold) running water for at least 10 minutes. Do NOT apply ice, butter, or ointments. Cover loosely with a clean, non-stick cloth. Remove tight items (rings, watches) near the burn before swelling starts.",
+    audio: {
+      english: "For burns: Move to safety. Cool the burn under running water for ten minutes. Do not apply ice or cream. Cover loosely. Help is coming.",
+      hindi: "जलने पर: सुरक्षित स्थान पर जाएं। जले हुए भाग को 10 मिनट तक ठंडे पानी के नीचे रखें। बर्फ या क्रीम न लगाएं।",
+      tamil: "தீக்காயங்களுக்கு: பாதுகாப்பான இடத்திற்கு செல்லுங்கள். தீக்காயத்தை 10 நிமிடம் தண்ணீரில் குளிர்விக்கவும்.",
+      telugu: "కాలిన గాయాలకు: సురక్షిత ప్రదేశానికి వెళ్లండి. కాలిన భాగాన్ని 10 నిమిషాలు చల్లని నీటిలో ఉంచండి."
+    }
+  },
+  poisoning: {
+    title: "Poisoning / Overdose Instructions",
+    message: "Do NOT induce vomiting unless specifically told to by a poison control expert. If the patient is conscious, keep them sitting up. Save the container or pill bottle to show medical staff. If unconscious but breathing, place them on their side (recovery position).",
+    audio: {
+      english: "For poisoning: Do not make them vomit. Keep the container with you. If unconscious, place them on their side. Help is coming.",
+      hindi: "जहर के लिए: उल्टी न कराएं। दवा की बोतल साथ रखें। बेहोश हो तो करवट पर लिटाएं।",
+      tamil: "விஷத்திற்கு: வாந்தி வரவைக்காதீர்கள். மருந்து குப்பியை வைத்துக் கொள்ளுங்கள். மயக்கமாக இருந்தால் பக்கவாட்டில் படுக்கவைக்கவும்.",
+      telugu: "విషం కోసం: వాంతి చేయించవద్దు. మందు సీసాను దగ్గర ఉంచుకోండి. స్పృహ లేకుంటే పక్కకు పడుకోబెట్టండి."
+    }
+  },
+  seizure: {
+    title: "Seizure / Epilepsy Instructions",
+    message: "Do NOT restrain the person or put anything in their mouth. Clear the area of hard or sharp objects. Place something soft under their head. Turn them gently on their side when the shaking stops. Time the seizure. Call for help if it lasts more than 5 minutes.",
+    audio: {
+      english: "For seizure: Do not hold them down. Move sharp objects away. Cushion the head. Turn on their side when shaking stops. Time the seizure.",
+      hindi: "दौरे के लिए: रोकें नहीं। नुकीली चीजें हटाएं। सिर के नीचे कुछ मुलायम रखें। दौरा रुकने पर करवट लिटाएं।",
+      tamil: "வலிப்புக்கு: அவர்களைப் பிடித்து வைக்காதீர்கள். கூர்மையான பொருட்களை அகற்றவும். தலையின் கீழ் மென்மையான பொருளை வைக்கவும்.",
+      telugu: "మూర్ఛ కోసం: వారిని పట్టుకోకండి. పదునైన వస్తువులను తీసివేయండి. తల కింద మెత్తని వస్తువు ఉంచండి."
+    }
+  },
+  choking: {
+    title: "Choking Instructions",
+    message: "If the person can cough or speak, encourage them to keep coughing. If they cannot, give 5 sharp back blows between the shoulder blades. If still blocked, perform 5 abdominal thrusts (Heimlich maneuver). Alternate until the object is dislodged or help arrives.",
+    audio: {
+      english: "For choking: Encourage coughing. If blocked, give five back blows then five abdominal thrusts. Alternate until help arrives.",
+      hindi: "दम घुटने पर: खांसने दें। नहीं हो तो 5 बार पीठ पर थपकी और 5 बार पेट दबाव दें।",
+      tamil: "மூச்சுத் திணறலுக்கு: இருமலை ஊக்குவிக்கவும். 5 முதுகில் தட்டுக்கள் மற்றும் 5 வயிற்று அழுத்தங்களைச் செய்யவும்.",
+      telugu: "ఊపిరి ఆడకపోతే: దగ్గుమని చెప్పండి. వీపుపై 5 సార్లు తట్టి, ఆపై 5 సార్లు పొట్టను నొక్కండి."
+    }
+  },
+  snakebite: {
+    title: "Snake / Insect Bite Instructions",
+    message: "Keep the bitten limb still and BELOW heart level. Do NOT cut the wound, suck out venom, or apply ice. Remove rings, watches, or tight clothing near the bite. Try to remember the colour and shape of the snake/insect to describe it to medical staff.",
+    audio: {
+      english: "For snake or insect bite: Keep the limb still and below the heart. Do not cut or suck the wound. Remove tight items. Help is coming.",
+      hindi: "सर्पदंश के लिए: काटे हुए हिस्से को स्थिर रखें और हृदय से नीचे रखें। घाव को न काटें।",
+      tamil: "பாம்பு கடியில்: காயமான பகுதியை அசையாமல் வைக்கவும். காயத்தை வெட்டவோ உறிஞ்சவோ வேண்டாம்.",
+      telugu: "పాము కాటుకు: కాటు వేసిన భాగాన్ని కదలకుండా ఉంచండి. గాయాన్ని కోయవద్దు."
+    }
+  },
+  bleeding: {
+    title: "Severe Bleeding Instructions",
+    message: "Apply firm, direct pressure on the wound with a clean cloth or your hand. Elevate the injured area above the level of the heart if possible. Do NOT remove embedded objects. Add more cloth on top if blood soaks through — do not lift the original cloth.",
+    audio: {
+      english: "For severe bleeding: Press firmly on the wound with clean cloth. Raise the injured area above the heart. Help is coming.",
+      hindi: "अधिक रक्तस्राव के लिए: साफ कपड़े से घाव पर दबाव डालें। घायल भाग को हृदय से ऊपर रखें।",
+      tamil: "அதிக இரத்தப்போக்கு: சுத்தமான துணியால் காயத்தை அழுத்தவும். காயமான பகுதியை இதயத்திற்கு மேலே வைக்கவும்.",
+      telugu: "తీవ్ర రక్తస్రావం: శుభ్రమైన గుడ్డతో గాయంపై గట్టిగా నొక్కండి. గాయపడిన భాగాన్ని గుండె కంటే పైకి ఎత్తండి."
+    }
+  },
+  fever: {
+    title: "High Fever / Dehydration Instructions",
+    message: "Move to a cool place. Sip small amounts of water or ORS solution frequently. Apply a cool damp cloth on the forehead, neck and armpits. Remove heavy clothing. Do NOT give aspirin to children. Seek immediate help if fever exceeds 104°F (40°C) or with confusion.",
+    audio: {
+      english: "For high fever: Move to a cool place. Sip water or ORS. Apply cool cloths. Avoid heavy clothing. Help is coming.",
+      hindi: "तेज बुखार के लिए: ठंडी जगह जाएं। पानी या ORS पिएं। ठंडे कपड़े लगाएं।",
+      tamil: "அதிக காய்ச்சலுக்கு: குளிர்ந்த இடத்திற்கு செல்லவும். தண்ணீர் அல்லது ORS குடிக்கவும்.",
+      telugu: "ఎక్కువ జ్వరానికి: చల్లని ప్రదేశానికి వెళ్లండి. నీరు లేదా ORS త్రాగండి."
+    }
+  },
+  mental: {
+    title: "Mental Health Crisis Instructions",
+    message: "Stay with the person. Speak calmly and listen without judgement. Remove any objects that could cause self-harm. Do not argue or use force. Reassure them that help is coming. If you are the patient, take slow deep breaths and stay on the line.",
+    audio: {
+      english: "Mental health support: Stay calm. Listen without judgement. Remove harmful objects. Reassure that help is on the way.",
+      hindi: "मानसिक संकट: शांत रहें। बिना न्याय किए सुनें। हानिकारक चीजें हटाएं।",
+      tamil: "மன அழுத்தத்திற்கு: அமைதியாக இருங்கள். தீர்ப்பு இல்லாமல் கேளுங்கள்.",
+      telugu: "మానసిక సహాయం: ప్రశాంతంగా ఉండండి. తీర్పు లేకుండా వినండి."
+    }
   }
 };
 
 export default function Emergency() {
+  const { lang } = useLanguage();
   const [selectedEmergency, setSelectedEmergency] = useState<string>("");
   const [emergencyRequested, setEmergencyRequested] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
@@ -93,6 +183,12 @@ export default function Emergency() {
   const [audioMessage, setAudioMessage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [videoCallActive, setVideoCallActive] = useState(false);
+
+  // Sync local instruction language with globally selected app language
+  useEffect(() => {
+    const map: Record<string, string> = { en: "english", hi: "hindi", ta: "tamil", te: "telugu" };
+    if (map[lang]) setSelectedLanguage(map[lang]);
+  }, [lang]);
 
   const handleEmergencyRequest = () => {
     setEmergencyRequested(true);
@@ -106,9 +202,18 @@ export default function Emergency() {
 
   const playAudioMessage = (message: string) => {
     if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
       setIsPlayingAudio(true);
       const utterance = new SpeechSynthesisUtterance(message);
-      utterance.rate = 0.8;
+      const langMap: Record<string, string> = {
+        english: "en-US", hindi: "hi-IN", tamil: "ta-IN", telugu: "te-IN",
+      };
+      utterance.lang = langMap[selectedLanguage] || ttsLangCode(lang);
+      // Prefer a voice matching the selected language if available
+      const voices = speechSynthesis.getVoices();
+      const match = voices.find((v) => v.lang === utterance.lang) || voices.find((v) => v.lang.startsWith(utterance.lang.split("-")[0]));
+      if (match) utterance.voice = match;
+      utterance.rate = 0.85;
       utterance.volume = 1;
       utterance.onend = () => setIsPlayingAudio(false);
       speechSynthesis.speak(utterance);
@@ -301,6 +406,17 @@ export default function Emergency() {
                     <Phone className="h-6 w-6 mr-3" />
                     REQUEST EMERGENCY HELP
                   </Button>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <Button variant="outline" size="lg" onClick={callDoctor} className="w-full">
+                      <Phone className="h-5 w-5 mr-2" />
+                      Call On-Call Doctor ({ON_CALL_DOCTOR.split("(")[0].trim()})
+                    </Button>
+                    <Button variant="outline" size="lg" onClick={handleVideoCall} disabled={!selectedEmergency} className="w-full">
+                      <Video className="h-5 w-5 mr-2" />
+                      Video Call Doctor Now
+                    </Button>
+                  </div>
 
                   <div className="text-sm text-muted-foreground">
                     Or call directly:{" "}

@@ -22,6 +22,24 @@ const DICT: Dict = {
   "common.welcome": { en: "Welcome to Your Health Dashboard", hi: "आपके स्वास्थ्य डैशबोर्ड में आपका स्वागत है", ta: "உங்கள் சுகாதார டாஷ்போர்டுக்கு வரவேற்கிறோம்", te: "మీ ఆరోగ్య డాష్‌బోర్డ్‌కు స్వాగతం", es: "Bienvenido a tu Panel de Salud", fr: "Bienvenue sur votre tableau de bord santé", ar: "مرحبا بك في لوحة الصحة" },
 };
 
+// Extra keys used across pages — anything missing falls back to English.
+const EXTRA: Dict = {
+  "common.tagline": { en: "Managing your healthcare journey with ease and precision", hi: "आपकी स्वास्थ्य यात्रा को आसानी और सटीकता से प्रबंधित करना", ta: "உங்கள் சுகாதார பயணத்தை எளிதாக நிர்வகிக்கிறது", te: "మీ ఆరోగ్య ప్రయాణాన్ని సులభంగా నిర్వహించడం", es: "Gestionando tu salud con facilidad y precisión", fr: "Gérer votre santé avec facilité", ar: "إدارة رحلتك الصحية بسهولة" },
+  "common.emergencyAccess": { en: "Emergency Access", hi: "आपातकालीन पहुंच", ta: "அவசர அணுகல்", te: "అత్యవసర యాక్సెస్", es: "Acceso de Emergencia", fr: "Accès d'urgence", ar: "وصول الطوارئ" },
+  "beds.title": { en: "Bed Availability", hi: "बेड उपलब्धता", ta: "படுக்கை கிடைக்கும் தன்மை", te: "పడక లభ్యత", es: "Disponibilidad de Camas", fr: "Disponibilité des lits", ar: "توافر الأسرّة" },
+  "beds.book": { en: "Book Bed", hi: "बेड बुक करें", ta: "படுக்கை முன்பதிவு", te: "పడక బుక్ చేయండి", es: "Reservar cama", fr: "Réserver un lit", ar: "احجز سريرا" },
+  "beds.discharge": { en: "Discharge", hi: "डिस्चार्ज", ta: "வெளியேற்று", te: "డిశ్చార్జ్", es: "Alta", fr: "Sortie", ar: "خروج" },
+  "beds.available": { en: "Available", hi: "उपलब्ध", ta: "கிடைக்கிறது", te: "అందుబాటులో", es: "Disponible", fr: "Disponible", ar: "متوفر" },
+  "edu.title": { en: "Health Education", hi: "स्वास्थ्य शिक्षा", ta: "சுகாதார கல்வி", te: "ఆరోగ్య విద్య", es: "Educación de Salud", fr: "Éducation à la santé", ar: "التثقيف الصحي" },
+  "chat.title": { en: "Chat Support", hi: "चैट सहायता", ta: "அரட்டை ஆதரவு", te: "చాట్ మద్దతు", es: "Soporte de Chat", fr: "Support Chat", ar: "دعم الدردشة" },
+  "chat.placeholder": { en: "Type your message...", hi: "अपना संदेश लिखें...", ta: "உங்கள் செய்தியை தட்டச்சு செய்க...", te: "మీ సందేశం టైప్ చేయండి...", es: "Escribe tu mensaje...", fr: "Tapez votre message...", ar: "اكتب رسالتك..." },
+  "video.title": { en: "Video Consultations", hi: "वीडियो परामर्श", ta: "வீடியோ ஆலோசனைகள்", te: "వీడియో సంప్రదింపులు", es: "Videoconsultas", fr: "Consultations vidéo", ar: "استشارات فيديو" },
+  "emergency.title": { en: "Emergency Services", hi: "आपातकालीन सेवाएं", ta: "அவசர சேவைகள்", te: "అత్యవసర సేవలు", es: "Servicios de Emergencia", fr: "Services d'urgence", ar: "خدمات الطوارئ" },
+  "emergency.callDoctor": { en: "Call Doctor Now", hi: "अभी डॉक्टर को कॉल करें", ta: "இப்போது மருத்துவரை அழைக்கவும்", te: "ఇప్పుడే వైద్యుడిని కాల్ చేయండి", es: "Llamar al doctor ahora", fr: "Appeler le médecin", ar: "اتصل بالطبيب الآن" },
+  "profile.title": { en: "Profile & Medical Information", hi: "प्रोफ़ाइल और चिकित्सा जानकारी", ta: "சுயவிவரம் & மருத்துவ தகவல்", te: "ప్రొఫైల్ & వైద్య సమాచారం", es: "Perfil e Información Médica", fr: "Profil et infos médicales", ar: "الملف الشخصي والمعلومات الطبية" },
+};
+Object.assign(DICT, EXTRA);
+
 interface LanguageContextType {
   lang: LangCode;
   setLang: (l: LangCode) => void;
@@ -49,7 +67,22 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const t = (key: string) => DICT[key]?.[lang] ?? DICT[key]?.en ?? key;
 
+  // also expose BCP-47 codes for browser APIs like SpeechSynthesis
   return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
+}
+
+export function ttsLangCode(l: LangCode): string {
+  switch (l) {
+    case "hi": return "hi-IN";
+    case "ta": return "ta-IN";
+    case "te": return "te-IN";
+    case "kn": return "kn-IN";
+    case "ml": return "ml-IN";
+    case "es": return "es-ES";
+    case "fr": return "fr-FR";
+    case "ar": return "ar-SA";
+    default: return "en-US";
+  }
 }
 
 export const useLanguage = () => useContext(LanguageContext);

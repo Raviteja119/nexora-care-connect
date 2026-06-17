@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadTextFile, readFileAsDataURL } from "@/lib/fileUtils";
+import { getCurrentUser } from "@/lib/auth";
 
 const emergencyContacts = [
   { name: "John Smith", relation: "Spouse", phone: "+1 (555) 0123" },
@@ -54,6 +55,21 @@ export default function Profile() {
     allergies: "Penicillin, Shellfish",
     currentMedications: "Metformin 500mg twice daily, Lisinopril 10mg once daily"
   });
+
+  // Load registered user details on mount
+  useEffect(() => {
+    const u = getCurrentUser();
+    if (u) {
+      const [first, ...rest] = (u.name || "").split(" ");
+      setProfileData((p) => ({
+        ...p,
+        firstName: first || p.firstName,
+        lastName: rest.join(" ") || p.lastName,
+        email: u.email || p.email,
+        phone: u.phone || p.phone,
+      }));
+    }
+  }, []);
 
   const handleSave = () => {
     setIsEditing(false);

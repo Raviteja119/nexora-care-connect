@@ -9,6 +9,7 @@ import { Stethoscope, Mail, Phone, Lock, Eye, EyeOff, CheckCircle2, XCircle } fr
 import heroImage from "@/assets/hero-medical.jpg";
 import { toast } from "sonner";
 import { validatePassword } from "@/lib/fileUtils";
+import { registerUser, loginUser, loginByMobile } from "@/lib/auth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -40,6 +41,7 @@ export default function Login() {
         toast.error("Invalid OTP. Use the OTP shown after 'Send OTP'.");
         return;
       }
+      loginByMobile(mobile);
       toast.success("Login successful! Redirecting...");
       setTimeout(() => navigate("/dashboard"), 600);
       return;
@@ -57,8 +59,12 @@ export default function Login() {
     if (mode === "signup") {
       if (!name.trim()) return toast.error("Please enter your name");
       if (password !== confirmPwd) return toast.error("Passwords do not match");
+      const res = registerUser({ name, email, password });
+      if (!res.ok) return toast.error(res.error || "Registration failed");
       toast.success(`Account created for ${name}! Redirecting...`);
     } else {
+      const res = loginUser(email, password);
+      if (!res.ok) return toast.error(res.error || "Login failed");
       toast.success("Login successful! Redirecting...");
     }
     setTimeout(() => navigate("/dashboard"), 600);

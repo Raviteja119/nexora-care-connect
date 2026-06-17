@@ -12,7 +12,7 @@ import { Navbar } from "@/components/Navbar";
 import { Bed, Users, Heart, Stethoscope, RefreshCw, Clock, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
-const bedTypes = [
+const initialBedTypes = [
   {
     type: "General Ward",
     total: 150,
@@ -48,6 +48,7 @@ const bedTypes = [
 ];
 
 export default function Beds() {
+  const [bedTypes, setBedTypes] = useState(initialBedTypes);
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedBedType, setSelectedBedType] = useState<any>(null);
@@ -84,9 +85,33 @@ export default function Beds() {
 
   const handleBookBed = (bedType: any) => setSelectedBedType(bedType);
 
+  const handleDischarge = (typeName: string) => {
+    setBedTypes((prev) =>
+      prev.map((b) =>
+        b.type === typeName && b.available < b.total
+          ? { ...b, available: b.available + 1 }
+          : b,
+      ),
+    );
+    setLastUpdated(new Date());
+    toast.success(`Patient discharged from ${typeName} — bed count increased`);
+  };
+
   const handleBookingSubmit = () => {
     if (selectedBedType && bookingData.patientName && bookingData.contactNumber) {
-      toast.success(`Bed booking request submitted for ${selectedBedType.type}. Confirmation in ~15 minutes.`, { duration: 5000 });
+      // Decrement availability for the booked bed type
+      setBedTypes((prev) =>
+        prev.map((b) =>
+          b.type === selectedBedType.type && b.available > 0
+            ? { ...b, available: b.available - 1 }
+            : b,
+        ),
+      );
+      setLastUpdated(new Date());
+      toast.success(
+        `Bed booked for ${bookingData.patientName} in ${selectedBedType.type}. Availability updated.`,
+        { duration: 5000 },
+      );
       setSelectedBedType(null);
       setBookingData({
         patientName: "",
@@ -169,6 +194,10 @@ export default function Beds() {
                       <Progress value={100 - availabilityPercentage} className="h-2" />
                       <div className="flex justify-between items-center">
                         <div className="text-lg font-semibold text-primary">{bed.price}</div>
+                        <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleDischarge(bed.type)} disabled={bed.available >= bed.total}>
+                          Discharge
+                        </Button>
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button
@@ -243,6 +272,7 @@ export default function Beds() {
                             </div>
                           </DialogContent>
                         </Dialog>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
