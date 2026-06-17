@@ -171,6 +171,11 @@ export default function VideoCall() {
                           Join WhatsApp Call
                         </Button>
                       )}
+                      {appointment.status === "Scheduled" && (
+                        <Button variant="outline" onClick={callDoctor}>
+                          <Phone className="h-4 w-4 mr-2" /> Normal Call
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" onClick={() => toast.info(`Appointment ${appointment.id} • ${appointment.duration}`)}>
                         View Details
                       </Button>
