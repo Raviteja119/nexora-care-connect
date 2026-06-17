@@ -175,6 +175,7 @@ const emergencyInstructions = {
 };
 
 export default function Emergency() {
+  const { lang } = useLanguage();
   const [selectedEmergency, setSelectedEmergency] = useState<string>("");
   const [emergencyRequested, setEmergencyRequested] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
@@ -182,6 +183,12 @@ export default function Emergency() {
   const [audioMessage, setAudioMessage] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [videoCallActive, setVideoCallActive] = useState(false);
+
+  // Sync local instruction language with globally selected app language
+  useEffect(() => {
+    const map: Record<string, string> = { en: "english", hi: "hindi", ta: "tamil", te: "telugu" };
+    if (map[lang]) setSelectedLanguage(map[lang]);
+  }, [lang]);
 
   const handleEmergencyRequest = () => {
     setEmergencyRequested(true);
@@ -195,9 +202,18 @@ export default function Emergency() {
 
   const playAudioMessage = (message: string) => {
     if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
       setIsPlayingAudio(true);
       const utterance = new SpeechSynthesisUtterance(message);
-      utterance.rate = 0.8;
+      const langMap: Record<string, string> = {
+        english: "en-US", hindi: "hi-IN", tamil: "ta-IN", telugu: "te-IN",
+      };
+      utterance.lang = langMap[selectedLanguage] || ttsLangCode(lang);
+      // Prefer a voice matching the selected language if available
+      const voices = speechSynthesis.getVoices();
+      const match = voices.find((v) => v.lang === utterance.lang) || voices.find((v) => v.lang.startsWith(utterance.lang.split("-")[0]));
+      if (match) utterance.voice = match;
+      utterance.rate = 0.85;
       utterance.volume = 1;
       utterance.onend = () => setIsPlayingAudio(false);
       speechSynthesis.speak(utterance);
