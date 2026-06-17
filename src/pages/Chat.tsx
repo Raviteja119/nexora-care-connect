@@ -117,7 +117,7 @@ export default function Chat() {
             </CardHeader>
             <CardContent className="space-y-3">
               {staffMembers.map(staff => (
-                <div key={staff.id} onClick={() => setSelectedStaff(staff)} className={`p-3 rounded-lg cursor-pointer transition-all ${selectedStaff.id === staff.id ? 'bg-medical-primary text-white' : 'hover:bg-muted'}`}>
+                <div key={staff.id} onClick={() => setSelectedStaff(staff)} className={`p-3 rounded-lg cursor-pointer transition-all ${selectedStaff.id === staff.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}>
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-sm font-semibold">{staff.name.split(' ').map(n=>n[0]).join('')}</div>
@@ -160,14 +160,14 @@ export default function Chat() {
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[70%] ${msg.sender === 'user' ? 'order-2' : 'order-1'}`}>
                     {msg.sender === 'staff' && <div className="text-xs text-muted-foreground mb-1">{msg.staffName} • {msg.staffRole}</div>}
-                    <div className={`p-3 rounded-lg ${msg.sender === 'user' ? 'bg-medical-primary text-white' : 'bg-muted'}`}>
+                    <div className={`p-3 rounded-lg ${msg.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                       <p className="text-sm">{msg.content}</p>
                       {msg.attachment && (
                         <a href={msg.attachment.url} target="_blank" rel="noopener noreferrer" download={msg.attachment.name} className="text-xs underline block mt-1">
                           Download {msg.attachment.name}
                         </a>
                       )}
-                      <p className={`text-xs mt-1 ${msg.sender === 'user' ? 'text-white/70' : 'text-muted-foreground'}`}>{msg.timestamp}</p>
+                      <p className={`text-xs mt-1 ${msg.sender === 'user' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>{msg.timestamp}</p>
                     </div>
                   </div>
                 </div>
@@ -193,7 +193,7 @@ export default function Chat() {
                   onKeyPress={(e)=>e.key==='Enter' && handleSendMessage()}
                   className="flex-1"
                 />
-                <Button onClick={handleSendMessage} disabled={!newMessage.trim()} className="bg-medical-primary hover:bg-medical-primary/90"><Send className="h-4 w-4" /></Button>
+                <Button onClick={handleSendMessage} disabled={!newMessage.trim()}><Send className="h-4 w-4" /></Button>
               </div>
             </div>
           </Card>
