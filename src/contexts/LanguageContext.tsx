@@ -85,9 +85,4 @@ export function ttsLangCode(l: LangCode): string {
   }
 }
 
-function _unused_close_marker() {
-
-  return <LanguageContext.Provider value={{ lang, setLang, t }}>{children}</LanguageContext.Provider>;
-}
-
 export const useLanguage = () => useContext(LanguageContext);
