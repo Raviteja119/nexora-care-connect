@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Play, Clock, User, Search, Heart, Brain, Activity } from "lucide-react";
+import { toast } from "sonner";
 
 const healthArticles = [
   {
@@ -353,7 +354,7 @@ export default function HealthEducation() {
                       <span>{video.instructor}</span>
                       <span>{video.views} views</span>
                     </div>
-                    <Button variant="outline" size="sm" className="w-full">
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => toast.info(`Playing: ${video.title} (${video.duration})`)}>
                       <Play className="h-4 w-4 mr-2" />
                       Watch Video
                     </Button>

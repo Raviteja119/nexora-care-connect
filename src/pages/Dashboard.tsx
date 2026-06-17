@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Bed, Calendar, UserCheck, Phone, Activity, Clock, MapPin, TriangleAlert as AlertTriangle } from "lucide-react";
 import { Link } from "react-router-dom";
 import dashboardBg from "@/assets/dashboard-bg.jpg";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const quickStats = [
   { title: "Available Beds", value: "47", description: "General: 23, ICU: 15, Special: 9", icon: Bed, link: "/beds" },
@@ -19,6 +20,7 @@ const recentActivities = [
 ];
 
 export default function Dashboard() {
+  const { t } = useLanguage();
   return (
     <div className="h-screen w-screen flex flex-col bg-background">
       {/* Navbar */}
@@ -30,11 +32,11 @@ export default function Dashboard() {
         <div className="relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${dashboardBg})` }}>
           <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm" />
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">Welcome to Your Health Dashboard</h1>
-            <p className="text-xl text-muted-foreground mb-8">Managing your healthcare journey with ease and precision</p>
+            <h1 className="text-4xl font-bold text-foreground mb-4">{t("common.welcome")}</h1>
+            <p className="text-xl text-muted-foreground mb-8">{t("common.tagline")}</p>
             <Link to="/emergency">
               <Button variant="destructive" size="lg" className="shadow-lg flex items-center justify-center mx-auto">
-                <Phone className="h-5 w-5 mr-2" /> Emergency Access
+                <Phone className="h-5 w-5 mr-2" /> {t("common.emergencyAccess")}
               </Button>
             </Link>
           </div>
