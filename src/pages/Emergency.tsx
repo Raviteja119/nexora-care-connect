@@ -407,6 +407,17 @@ export default function Emergency() {
                     REQUEST EMERGENCY HELP
                   </Button>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <Button variant="outline" size="lg" onClick={callDoctor} className="w-full">
+                      <Phone className="h-5 w-5 mr-2" />
+                      Call On-Call Doctor ({ON_CALL_DOCTOR.split("(")[0].trim()})
+                    </Button>
+                    <Button variant="outline" size="lg" onClick={handleVideoCall} disabled={!selectedEmergency} className="w-full">
+                      <Video className="h-5 w-5 mr-2" />
+                      Video Call Doctor Now
+                    </Button>
+                  </div>
+
                   <div className="text-sm text-muted-foreground">
                     Or call directly:{" "}
                     <a href="tel:108" className="font-bold text-destructive underline">108</a>
