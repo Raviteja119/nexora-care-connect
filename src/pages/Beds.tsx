@@ -194,6 +194,10 @@ export default function Beds() {
                       <Progress value={100 - availabilityPercentage} className="h-2" />
                       <div className="flex justify-between items-center">
                         <div className="text-lg font-semibold text-primary">{bed.price}</div>
+                        <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleDischarge(bed.type)} disabled={bed.available >= bed.total}>
+                          Discharge
+                        </Button>
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button
@@ -268,6 +272,7 @@ export default function Beds() {
                             </div>
                           </DialogContent>
                         </Dialog>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
