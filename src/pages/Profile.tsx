@@ -120,6 +120,20 @@ export default function Profile() {
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {!profileComplete && (
+          <div className="mb-6 rounded-lg border border-amber-400/40 bg-amber-50 dark:bg-amber-950/30 p-4 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-medium text-amber-900 dark:text-amber-200">Complete your profile</p>
+              <p className="text-sm text-amber-800/80 dark:text-amber-200/80">
+                Please fill in your phone, address, date of birth, blood type and emergency contacts so doctors can serve you better in an emergency.
+              </p>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+              Fill now
+            </Button>
+          </div>
+        )}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
             <div className="relative">
