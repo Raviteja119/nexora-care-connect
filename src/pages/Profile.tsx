@@ -26,17 +26,9 @@ import { toast } from "sonner";
 import { downloadTextFile, readFileAsDataURL } from "@/lib/fileUtils";
 import { getCurrentUser } from "@/lib/auth";
 
-const emergencyContacts = [
-  { name: "John Smith", relation: "Spouse", phone: "+1 (555) 0123" },
-  { name: "Sarah Johnson", relation: "Daughter", phone: "+1 (555) 0456" },
-  { name: "Dr. Wilson", relation: "Primary Doctor", phone: "+1 (555) 0789" }
-];
-
-const medicalHistory = [
-  { condition: "Hypertension", diagnosed: "2020", status: "Ongoing" },
-  { condition: "Diabetes Type 2", diagnosed: "2019", status: "Controlled" },
-  { condition: "Heart Surgery", diagnosed: "2021", status: "Recovered" }
-];
+// Profile starts empty for newly registered users — they are prompted to fill it in.
+const emergencyContacts: { name: string; relation: string; phone: string }[] = [];
+const medicalHistory: { condition: string; diagnosed: string; status: string }[] = [];
 
 export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -45,33 +37,56 @@ export default function Profile() {
   const avatarRef = useRef<HTMLInputElement>(null);
   const docRef = useRef<HTMLInputElement>(null);
   const [profileData, setProfileData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@email.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Main Street, City, State 12345",
-    dateOfBirth: "1985-05-15",
-    bloodType: "O+",
-    allergies: "Penicillin, Shellfish",
-    currentMedications: "Metformin 500mg twice daily, Lisinopril 10mg once daily"
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address: "",
+    dateOfBirth: "",
+    bloodType: "",
+    allergies: "",
+    currentMedications: ""
   });
+  const [profileComplete, setProfileComplete] = useState(true);
 
-  // Load registered user details on mount
+  // Load registered user details on mount; restore any saved profile.
   useEffect(() => {
     const u = getCurrentUser();
-    if (u) {
+    const saved = (() => {
+      try { return JSON.parse(localStorage.getItem("nexora_profile") || "null"); } catch { return null; }
+    })();
+    if (saved) {
+      setProfileData(saved);
+    } else if (u) {
       const [first, ...rest] = (u.name || "").split(" ");
       setProfileData((p) => ({
         ...p,
-        firstName: first || p.firstName,
-        lastName: rest.join(" ") || p.lastName,
-        email: u.email || p.email,
-        phone: u.phone || p.phone,
+        firstName: first || "",
+        lastName: rest.join(" "),
+        email: u.email || "",
+        phone: u.phone || "",
       }));
+    }
+    // Show profile-completion prompt if essential fields missing
+    const required = ["firstName", "phone", "address", "dateOfBirth", "bloodType"];
+    const data = saved || (u ? { firstName: (u.name || "").split(" ")[0], phone: u.phone, address: "", dateOfBirth: "", bloodType: "" } : {});
+    const missing = required.some((k) => !data || !(data as any)[k]);
+    setProfileComplete(!missing);
+    if (missing) {
+      setIsEditing(true);
+      setTimeout(() => toast.info("Please complete your profile details to unlock personalised features.", { duration: 6000 }), 600);
     }
   }, []);
 
   const handleSave = () => {
+    const required: (keyof typeof profileData)[] = ["firstName", "phone", "address", "dateOfBirth", "bloodType"];
+    const missing = required.filter((k) => !profileData[k]?.toString().trim());
+    if (missing.length) {
+      toast.error(`Please fill: ${missing.join(", ")}`);
+      return;
+    }
+    localStorage.setItem("nexora_profile", JSON.stringify(profileData));
+    setProfileComplete(true);
     setIsEditing(false);
     toast.success("Profile saved successfully");
   };
@@ -105,6 +120,20 @@ export default function Profile() {
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {!profileComplete && (
+          <div className="mb-6 rounded-lg border border-amber-400/40 bg-amber-50 dark:bg-amber-950/30 p-4 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-medium text-amber-900 dark:text-amber-200">Complete your profile</p>
+              <p className="text-sm text-amber-800/80 dark:text-amber-200/80">
+                Please fill in your phone, address, date of birth, blood type and emergency contacts so doctors can serve you better in an emergency.
+              </p>
+            </div>
+            <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
+              Fill now
+            </Button>
+          </div>
+        )}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
             <div className="relative">

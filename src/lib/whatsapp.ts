@@ -3,25 +3,30 @@
 export const WHATSAPP_NUMBER = "919491966048"; // +91 9491966048
 export const ON_CALL_DOCTOR = "Dr. Teja (On-Call Physician)";
 
-/** Open WhatsApp chat reliably. Falls back to web URL if wa.me is blocked. */
+/**
+ * Open a WhatsApp chat. We avoid wa.me / api.whatsapp.com (often blocked
+ * by ISPs or corporate DNS — that's why some users see "api.whatsapp.com
+ * is blocked"). Instead we use the native `whatsapp://` deep-link on
+ * mobile and `web.whatsapp.com/send` directly on desktop.
+ */
 export function openWhatsAppChat(message: string) {
   const text = encodeURIComponent(message);
-  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const deepLink = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${text}`;
   const webUrl = `https://web.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${text}`;
-  const win = window.open(waUrl, "_blank", "noopener,noreferrer");
-  if (!win) {
-    // popup blocked → use direct navigation as fallback
-    window.location.href = waUrl;
+
+  if (isMobile) {
+    // Try app first, then fall back to web after a short delay.
+    window.location.href = deepLink;
+    setTimeout(() => {
+      window.open(webUrl, "_blank", "noopener,noreferrer");
+    }, 1200);
     return;
   }
-  // fallback to web.whatsapp.com if wa.me fails to load within 2s
-  setTimeout(() => {
-    try {
-      if (win && !win.closed && win.location && win.location.href === "about:blank") {
-        win.location.href = webUrl;
-      }
-    } catch { /* cross-origin – ignore */ }
-  }, 2000);
+
+  // Desktop: open web.whatsapp.com directly (no api.whatsapp.com redirect).
+  const win = window.open(webUrl, "_blank", "noopener,noreferrer");
+  if (!win) window.location.href = webUrl;
 }
 
 export function openWhatsAppVideoCall(context: string) {

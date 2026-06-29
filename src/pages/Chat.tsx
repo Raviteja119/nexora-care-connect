@@ -42,16 +42,77 @@ export default function Chat() {
 
   useEffect(() => { scrollToBottom(); }, [messages, isTyping]);
 
-  const smartReply = (text: string, role: string) => {
-    const lower = text.toLowerCase();
-    if (lower.includes("appointment")) return "Your appointment with Dr. Michael Chen is confirmed for tomorrow at 2:00 PM. Do you need directions or a reminder?";
-    if (lower.includes("bill") || lower.includes("payment") || lower.includes("insurance")) return "I can help with billing. Your last invoice #INV-2421 was ₹3,450 — fully paid. Need a receipt?";
-    if (lower.includes("bed") || lower.includes("admission")) return "We have 23 General, 15 ICU and 9 Special Care beds available right now. Would you like me to reserve one?";
-    if (lower.includes("prescription") || lower.includes("medicine") || lower.includes("refill")) return "Sure — I see your active Rx for Lisinopril 10mg. I've raised a refill request with HealthCare Pharmacy.";
-    if (lower.includes("emergency") || lower.includes("ambulance")) return "Please head to the Emergency page and tap REQUEST EMERGENCY HELP. Staying on this chat for support.";
-    if (lower.includes("doctor")) return "Dr. Sarah Wilson (Cardiology) is Available now. Want me to book a slot or start a video call?";
-    if (lower.includes("thank")) return "You're welcome! Anything else I can help you with today? 😊";
-    return `Thanks for the details. I've noted this and our ${role} team will follow up shortly. Anything else?`;
+  const smartReply = (text: string, role: string): string => {
+    const t = text.toLowerCase().trim();
+    const has = (...words: string[]) => words.some((w) => t.includes(w));
+
+    // Greetings
+    if (has("hi", "hello", "hey", "namaste", "good morning", "good evening")) {
+      return `Hi there! 👋 I'm ${selectedStaff.name} from NeXora ${role}. How can I help you today? You can ask me about appointments, beds, doctors, lab tests, prescriptions, billing or emergencies.`;
+    }
+    // Appointments
+    if (has("appointment", "book", "schedule", "consult", "slot")) {
+      if (has("cancel")) return "I can cancel that for you. Could you share the appointment date or doctor name? You can also cancel directly from the Appointments page.";
+      if (has("reschedule", "change", "postpone")) return "Sure — head to OP Rescheduling from the menu, or tell me the new preferred date and time and I'll move it for you.";
+      return "I can book an appointment for you. Which speciality do you need — Cardiology, General Medicine, Pediatrics, Orthopedics, Dermatology or Neurology? Your next available slot with Dr. Sarah Wilson (Cardiology) is today 4:30 PM.";
+    }
+    // Beds
+    if (has("bed", "admission", "admit", "ward", "icu", "room")) {
+      return "Live bed availability right now → General: 23, ICU: 15, Special Care: 9, Maternity: 11, Pediatric: 6. Would you like me to reserve one? Please share patient name and approximate admission time.";
+    }
+    // Prescriptions
+    if (has("prescription", "medicine", "medication", "refill", "tablet", "pharmacy")) {
+      return "Your active prescriptions are: 1) Lisinopril 10 mg — once daily, 2) Metformin 500 mg — twice daily. I've raised a refill request with HealthCare Pharmacy (delivery in 2–3 hours). Need anything else?";
+    }
+    // Lab tests
+    if (has("lab", "test", "blood", "report", "result", "x-ray", "scan", "mri", "ct")) {
+      return "Your last 3 lab results are ready: CBC (Normal), Lipid Profile (Borderline LDL 132 mg/dL), HbA1c (6.4%). View or download from the Lab Tests page. Would you like to book a new test?";
+    }
+    // Billing
+    if (has("bill", "payment", "invoice", "insurance", "claim", "cost", "price", "charges")) {
+      return "Your last invoice #INV-2421 of ₹3,450 is FULLY PAID. Insurance reimbursement of ₹2,800 was processed on 12-Jun. Need a GST receipt or detailed break-up?";
+    }
+    // Emergency
+    if (has("emergency", "ambulance", "urgent", "108", "accident", "chest pain", "stroke", "fainting")) {
+      return "🚨 If this is life-threatening, please tap REQUEST EMERGENCY HELP on the Emergency page now — an ambulance will be dispatched and recorded first-aid instructions will play. I'm staying on this chat. Type DOCTOR to start an immediate video consultation.";
+    }
+    // Doctors
+    if (has("doctor", "physician", "specialist", "cardiologist", "dermatologist", "pediatrician")) {
+      return "Available doctors right now: Dr. Sarah Wilson (Cardiology, ⭐4.9), Dr. Michael Chen (Neurology, ⭐4.8), Dr. Emily Davis (Dermatology, ⭐4.7). Reply with a name to book a slot or video call.";
+    }
+    // Video call
+    if (has("video", "call", "consultation", "online")) {
+      return "I can connect you to a doctor over WhatsApp video. Tap 'Video Call' at the top of this chat or visit the Video Call page. Standard consultation fee is ₹399.";
+    }
+    // Profile
+    if (has("profile", "details", "address", "update", "personal")) {
+      return "You can update your personal details, allergies, blood group and emergency contacts from the Profile page. Keeping it current helps us serve you faster in emergencies.";
+    }
+    // Feedback / complaint
+    if (has("feedback", "complaint", "complain", "suggestion", "review")) {
+      return "We'd love your feedback! Please visit the Feedback page and rate your last visit. Serious complaints are escalated to the Quality team within 4 hours.";
+    }
+    // Distance / directions
+    if (has("distance", "direction", "how far", "address", "location", "reach", "map")) {
+      return "NeXora General Hospital is at MG Road, Bangalore. Use the Distance Tracker page for live distance, ETA and route map. Free patient parking is available at Gate 2.";
+    }
+    // Hours
+    if (has("hour", "timing", "open", "close", "available")) {
+      return "OPD: Mon–Sat 8 AM – 8 PM, Sun 9 AM – 1 PM. Emergency & Pharmacy: 24×7. Lab collection: 7 AM – 9 PM daily.";
+    }
+    // Thanks
+    if (has("thank", "thanks", "ty", "🙏")) {
+      return "You're most welcome! 😊 Wishing you good health. Is there anything else I can help with?";
+    }
+    // Yes / No
+    if (t === "yes" || t === "yeah" || t === "sure" || t === "ok") {
+      return "Great! Please share a bit more detail so I can help you faster — e.g., patient name, preferred date/time, or symptoms.";
+    }
+    if (t === "no" || t === "nope") {
+      return "No problem. I'm here whenever you need anything else. Stay healthy! 💚";
+    }
+    // Fallback
+    return `I understand you're asking about "${text.slice(0, 60)}". Could you tell me a bit more? I can help with appointments, bed availability, prescriptions, lab tests, billing, doctor video calls, or emergencies — just type a keyword like "book doctor" or "lab report".`;
   };
 
   const handleSendMessage = () => {

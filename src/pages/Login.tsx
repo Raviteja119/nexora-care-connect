@@ -1,15 +1,17 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Stethoscope, Mail, Phone, Lock, Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react";
+import { Mail, Phone, Lock, Eye, EyeOff, CheckCircle2, XCircle, Sparkles, ShieldCheck, Heart } from "lucide-react";
 import heroImage from "@/assets/hero-medical.jpg";
 import { toast } from "sonner";
 import { validatePassword } from "@/lib/fileUtils";
 import { registerUser, loginUser, loginByMobile } from "@/lib/auth";
+import { Logo } from "@/components/Logo";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -81,27 +83,56 @@ export default function Login() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative"
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative overflow-hidden"
       style={{ backgroundImage: `url(${heroImage})` }}
     >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-      
+      {/* Animated gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-background/85 to-emerald-500/20 backdrop-blur-sm" />
+      <motion.div
+        className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-3xl"
+        animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-emerald-400/20 blur-3xl"
+        animate={{ x: [0, -50, 0], y: [0, -30, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+      />
+
       <div className="relative z-10 w-full max-w-md p-6">
         {/* Logo */}
-        <div className="flex items-center justify-center space-x-2 mb-8">
-          <Stethoscope className="h-10 w-10 text-primary" />
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-primary">NeXora</h1>
-            <p className="text-sm text-muted-foreground">Hospital Services</p>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex items-center justify-center mb-6"
+        >
+          <Logo size={56} />
+        </motion.div>
 
-        <Card className="shadow-xl">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          style={{ perspective: 1200 }}
+        >
+        <AnimatePresence mode="wait">
+        <motion.div
+          key={mode}
+          initial={{ opacity: 0, rotateY: mode === "signup" ? 90 : -90 }}
+          animate={{ opacity: 1, rotateY: 0 }}
+          exit={{ opacity: 0, rotateY: mode === "signup" ? -90 : 90 }}
+          transition={{ duration: 0.45, ease: "easeInOut" }}
+        >
+        <Card className="shadow-2xl border-primary/20 backdrop-blur-md bg-card/95">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">
-              {mode === "signin" ? "Welcome Back" : "Create Account"}
+            <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2">
+              {mode === "signin" ? (
+                <><Heart className="h-5 w-5 text-primary" /> Welcome Back</>
+              ) : (
+                <><Sparkles className="h-5 w-5 text-emerald-500" /> Join NeXora</>
+              )}
             </CardTitle>
             <CardDescription>
               {mode === "signin" ? "Access your hospital services account" : "Sign up to access NeXora services"}
@@ -211,10 +242,12 @@ export default function Login() {
             </Tabs>
 
             <div className="space-y-4 mt-6">
-              <Button variant="medical" className="w-full h-11 text-lg font-medium" onClick={handleSubmit}>
-                <Lock className="h-5 w-5 mr-2" />
-                {mode === "signin" ? "Sign In" : "Create Account"}
-              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Button variant="medical" className="w-full h-11 text-lg font-medium" onClick={handleSubmit}>
+                  <Lock className="h-5 w-5 mr-2" />
+                  {mode === "signin" ? "Sign In" : "Create Account"}
+                </Button>
+              </motion.div>
 
               <div className="text-center">
                 <button
@@ -236,12 +269,27 @@ export default function Login() {
                 </div>
               </div>
 
-              <Button variant="outline" className="w-full h-11" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>
-                {mode === "signin" ? "Create New Account" : "Sign in instead"}
+              <Button variant="outline" className="w-full h-11 group" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>
+                <span className="transition-transform group-hover:translate-x-1">
+                  {mode === "signin" ? "Create New Account →" : "← Sign in instead"}
+                </span>
               </Button>
             </div>
           </CardContent>
         </Card>
+        </motion.div>
+        </AnimatePresence>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground"
+        >
+          <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+          Your data is encrypted and never shared.
+        </motion.div>
       </div>
     </div>
   );
