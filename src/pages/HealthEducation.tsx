@@ -348,12 +348,35 @@ export default function HealthEducation() {
             </CardHeader>
             <CardContent>
               <div className="prose max-w-none">
-                <p className="text-lg text-muted-foreground mb-6">
+                <p className="text-lg text-muted-foreground italic border-l-4 border-primary pl-4 mb-6">
                   {selectedArticle.excerpt}
                 </p>
-                <div className="text-foreground">
-                  {selectedArticle.content}
-                </div>
+                {articleDetails[selectedArticle.id] ? (
+                  <div className="space-y-6 text-foreground leading-relaxed">
+                    <p className="text-base">{articleDetails[selectedArticle.id].intro}</p>
+                    {articleDetails[selectedArticle.id].sections.map((sec) => (
+                      <div key={sec.heading} className="space-y-2">
+                        <h3 className="text-xl font-semibold text-primary">{sec.heading}</h3>
+                        {sec.body && <p className="text-base">{sec.body}</p>}
+                        {sec.bullets && (
+                          <ul className="list-disc pl-6 space-y-1 text-base">
+                            {sec.bullets.map((b, i) => (<li key={i}>{b}</li>))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                    <div className="mt-8 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                      <h4 className="font-semibold text-primary mb-1">Key Takeaway</h4>
+                      <p className="text-base">{articleDetails[selectedArticle.id].takeaway}</p>
+                    </div>
+                    <div className="mt-6 flex flex-wrap gap-2 text-xs text-muted-foreground border-t pt-4">
+                      <span>📚 Sources: WHO, ICMR, AHA, NHS, Indian Academy of Pediatrics</span>
+                      <span className="ml-auto">⚠️ For information only. Always consult your doctor for personal medical advice.</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-foreground">{selectedArticle.content}</p>
+                )}
               </div>
             </CardContent>
           </Card>
