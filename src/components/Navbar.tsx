@@ -1,20 +1,20 @@
 import { Link, useLocation } from "react-router-dom";
-import { 
-  Chrome as Home, 
-  Bed, 
-  UserCheck, 
-  Phone, 
-  MapPin, 
-  User, 
-  LogOut, 
-  Stethoscope, 
-  Pill, 
-  Video, 
-  TestTube, 
-  MessageCircle, 
-  BookOpen, 
-  Star 
+import {
+  Chrome as Home,
+  Bed,
+  UserCheck,
+  Phone,
+  MapPin,
+  User,
+  LogOut,
+  Pill,
+  Video,
+  TestTube,
+  MessageCircle,
+  BookOpen,
+  Star
 } from "lucide-react";
+import { Logo } from "./Logo";
 import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -48,13 +48,7 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <Stethoscope className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-xl font-bold text-primary">NeXora</h1>
-              <p className="text-xs text-muted-foreground">Hospital Services</p>
-            </div>
-          </div>
+          <Link to="/dashboard"><Logo size={36} /></Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-1">
