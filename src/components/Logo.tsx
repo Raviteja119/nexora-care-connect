@@ -8,19 +8,19 @@ interface LogoProps {
 
 export function Logo({ size = 40, withText = true, className = "" }: LogoProps) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-2 min-w-0 ${className}`}>
       <img
         src={logo}
         alt="NeXora"
         style={{ width: size, height: size }}
-        className="object-contain rounded-md mix-blend-multiply"
+        className="object-contain rounded-md mix-blend-multiply shrink-0"
       />
       {withText && (
-        <div className="leading-tight">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">
+        <div className="leading-tight min-w-0">
+          <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent truncate">
             NeXora
           </h1>
-          <p className="text-[10px] text-muted-foreground -mt-0.5">Hospital Services</p>
+          <p className="text-[9px] text-muted-foreground -mt-0.5 truncate">Hospital Services</p>
         </div>
       )}
     </div>

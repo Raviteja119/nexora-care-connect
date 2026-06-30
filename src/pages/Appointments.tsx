@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,15 +11,16 @@ import { Label } from "@/components/ui/label";
 import { Navbar } from "@/components/Navbar";
 import { Calendar as CalendarIcon, Clock, Stethoscope, Plus, CircleCheck as CheckCircle, Circle as XCircle, RotateCcw, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { pushNotification } from "@/lib/notifications";
 
 // Dummy data
-const upcomingAppointments = [
+const initialUpcoming = [
   { id: 1, doctor: "Dr. Sarah Wilson", specialty: "Cardiology", date: "2024-01-20", time: "10:30 AM", type: "Follow-up", status: "confirmed" },
   { id: 2, doctor: "Dr. Michael Chen", specialty: "Orthopedics", date: "2024-01-22", time: "2:15 PM", type: "Consultation", status: "confirmed" },
   { id: 3, doctor: "Dr. Emily Davis", specialty: "Dermatology", date: "2024-01-25", time: "11:00 AM", type: "Check-up", status: "pending" }
 ];
 
-const pastAppointments = [
+const initialPast = [
   { id: 4, doctor: "Dr. James Thompson", specialty: "General Medicine", date: "2024-01-15", time: "9:00 AM", type: "Consultation", status: "completed" },
   { id: 5, doctor: "Dr. Sarah Wilson", specialty: "Cardiology", date: "2024-01-10", time: "10:30 AM", type: "Initial Visit", status: "completed" }
 ];
@@ -127,7 +128,7 @@ function RescheduleDialog({ appointmentId, onSubmit }: { appointmentId: number, 
 }
 
 // Appointment Card
-function AppointmentCard({ appointment, isUpcoming = false, onReschedule, onCancel, onViewReport }: { appointment: typeof upcomingAppointments[0], isUpcoming?: boolean, onReschedule?: (id:number) => void, onCancel?: (id:number) => void, onViewReport?: (id:number) => void }) {
+function AppointmentCard({ appointment, isUpcoming = false, onCancel, onReschedule }: { appointment: typeof initialUpcoming[0]; isUpcoming?: boolean; onCancel?: (id: number) => void; onReschedule?: (id: number, date: Date, time: string) => void }) {
   const StatusIcon = getStatusIcon(appointment.status);
   return (
     <div className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
@@ -149,8 +150,8 @@ function AppointmentCard({ appointment, isUpcoming = false, onReschedule, onCanc
           <Badge variant={getStatusColor(appointment.status)}><StatusIcon className="h-3 w-3 mr-1" />{appointment.status}</Badge>
           {isUpcoming && (
             <div className="flex space-x-2">
-              <RescheduleDialog appointmentId={appointment.id} onSubmit={(date,time)=>toast.success(`Reschedule submitted to ${date.toLocaleDateString()} at ${time}`)} />
-              <Button variant="destructive" size="sm" onClick={()=>toast.success(`Appointment #${appointment.id} cancelled`)}>Cancel</Button>
+              <RescheduleDialog appointmentId={appointment.id} onSubmit={(date, time) => onReschedule?.(appointment.id, date, time)} />
+              <Button variant="destructive" size="sm" onClick={() => onCancel?.(appointment.id)}>Cancel</Button>
             </div>
           )}
           {!isUpcoming && (
@@ -171,6 +172,23 @@ export default function Appointments() {
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("");
   const [reason, setReason] = useState("");
+  const [upcoming, setUpcoming] = useState(initialUpcoming);
+  const [past, setPast] = useState(initialPast);
+  const [cancelled, setCancelled] = useState<typeof initialUpcoming>([]);
+
+  const handleCancel = (id: number) => {
+    const a = upcoming.find((x) => x.id === id);
+    if (!a) return;
+    setUpcoming((prev) => prev.filter((x) => x.id !== id));
+    setCancelled((prev) => [{ ...a, status: "cancelled" }, ...prev]);
+    toast.success(`Appointment with ${a.doctor} cancelled`);
+    pushNotification({ type: "appointment", title: "Appointment cancelled", message: `${a.doctor} · ${a.date} ${a.time}`, link: "/appointments" });
+  };
+  const handleReschedule = (id: number, date: Date, time: string) => {
+    setUpcoming((prev) => prev.map((x) => (x.id === id ? { ...x, date: date.toISOString().slice(0, 10), time, status: "pending" } : x)));
+    toast.success(`Rescheduled to ${date.toLocaleDateString()} at ${time}`);
+    pushNotification({ type: "appointment", title: "Appointment rescheduled", message: `New time: ${date.toLocaleDateString()} ${time}`, link: "/appointments" });
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,9 +200,10 @@ export default function Appointments() {
         </div>
 
         <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="past">Past Appointments</TabsTrigger>
+            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
             <TabsTrigger value="book">Book New</TabsTrigger>
           </TabsList>
 
@@ -196,7 +215,10 @@ export default function Appointments() {
                 <CardDescription>Your scheduled appointments with doctors</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {upcomingAppointments.map(app => <AppointmentCard key={app.id} appointment={app} isUpcoming />)}
+                {upcoming.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No upcoming appointments. Book one from the "Book New" tab.</p>}
+                {upcoming.map((app) => (
+                  <AppointmentCard key={app.id} appointment={app} isUpcoming onCancel={handleCancel} onReschedule={handleReschedule} />
+                ))}
               </CardContent>
             </Card>
           </TabsContent>
@@ -209,7 +231,19 @@ export default function Appointments() {
                 <CardDescription>Your appointment history and medical records</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {pastAppointments.map(app => <AppointmentCard key={app.id} appointment={app} />)}
+                {past.map((app) => <AppointmentCard key={app.id} appointment={app} />)}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="cancelled" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2"><XCircle className="h-5 w-5 text-destructive" /><span>Cancelled Appointments</span></CardTitle>
+                <CardDescription>Cancelled appointments — they no longer appear in your upcoming list.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {cancelled.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">No cancelled appointments.</p> : cancelled.map((app) => <AppointmentCard key={app.id} appointment={app} />)}
               </CardContent>
             </Card>
           </TabsContent>
@@ -271,7 +305,18 @@ export default function Appointments() {
                     className="w-full"
                     disabled={!selectedDate || !selectedSpecialty || !selectedDoctor || !selectedTime}
                     onClick={() => {
-                      toast.success(`Appointment booked with ${selectedDoctor} (${selectedSpecialty}) on ${selectedDate?.toLocaleDateString()} at ${selectedTime}`);
+                      const newApp = {
+                        id: Date.now(),
+                        doctor: selectedDoctor,
+                        specialty: selectedSpecialty,
+                        date: selectedDate!.toISOString().slice(0, 10),
+                        time: selectedTime,
+                        type: "Consultation",
+                        status: "confirmed" as const,
+                      };
+                      setUpcoming((prev) => [...prev, newApp]);
+                      pushNotification({ type: "appointment", title: "Appointment booked", message: `${selectedDoctor} (${selectedSpecialty}) on ${newApp.date} at ${selectedTime}`, link: "/appointments" });
+                      toast.success(`Appointment booked with ${selectedDoctor} (${selectedSpecialty}) on ${newApp.date} at ${selectedTime}`);
                       setSelectedSpecialty(""); setSelectedDoctor(""); setSelectedTime(""); setReason("");
                     }}
                   >

@@ -23,6 +23,7 @@ import Feedback from "./pages/Feedback";
 import HospitalManagement from "./pages/HospitalManagement";
 import TollFreeService from "./pages/TollFreeService";
 import NotFound from "./pages/NotFound";
+import { AuthGuard } from "./components/AuthGuard";
 
 const queryClient = new QueryClient();
 
@@ -36,22 +37,22 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/beds" element={<Beds />} />
-          <Route path="/appointments" element={<Appointments />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/emergency" element={<Emergency />} />
-          <Route path="/track" element={<Track />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/reschedule" element={<Reschedule />} />
-          <Route path="/prescriptions" element={<Prescriptions />} />
-          <Route path="/video-call" element={<VideoCall />} />
-          <Route path="/lab-tests" element={<LabTests />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/health-education" element={<HealthEducation />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/hospital-management" element={<HospitalManagement />} />
-          <Route path="/toll-free" element={<TollFreeService />} />
+          <Route path="/dashboard" element={<AuthGuard><Dashboard /></AuthGuard>} />
+          <Route path="/beds" element={<AuthGuard><Beds /></AuthGuard>} />
+          <Route path="/appointments" element={<AuthGuard><Appointments /></AuthGuard>} />
+          <Route path="/doctors" element={<AuthGuard><Doctors /></AuthGuard>} />
+          <Route path="/emergency" element={<AuthGuard><Emergency /></AuthGuard>} />
+          <Route path="/track" element={<AuthGuard><Track /></AuthGuard>} />
+          <Route path="/profile" element={<AuthGuard><Profile /></AuthGuard>} />
+          <Route path="/reschedule" element={<AuthGuard><Reschedule /></AuthGuard>} />
+          <Route path="/prescriptions" element={<AuthGuard><Prescriptions /></AuthGuard>} />
+          <Route path="/video-call" element={<AuthGuard><VideoCall /></AuthGuard>} />
+          <Route path="/lab-tests" element={<AuthGuard><LabTests /></AuthGuard>} />
+          <Route path="/chat" element={<AuthGuard><Chat /></AuthGuard>} />
+          <Route path="/health-education" element={<AuthGuard><HealthEducation /></AuthGuard>} />
+          <Route path="/feedback" element={<AuthGuard><Feedback /></AuthGuard>} />
+          <Route path="/hospital-management" element={<AuthGuard><HospitalManagement /></AuthGuard>} />
+          <Route path="/toll-free" element={<AuthGuard><TollFreeService /></AuthGuard>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

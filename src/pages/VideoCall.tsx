@@ -63,8 +63,11 @@ export default function VideoCall() {
   };
 
   const handleJoinCall = (doctorName: string) => {
-    openWhatsAppVideoCall(`Patient ready to join video consultation with ${doctorName}. Routing to ${ON_CALL_DOCTOR} for immediate assistance.`);
-    toast.success(`Opening WhatsApp call with ${ON_CALL_DOCTOR}...`);
+    const res = openWhatsAppVideoCall(`Patient ready to join video consultation with ${doctorName}. Routing to ${ON_CALL_DOCTOR} for immediate assistance.`);
+    toast.success(`Opening WhatsApp call with ${ON_CALL_DOCTOR}...`, {
+      description: "If WhatsApp didn't open, tap to retry.",
+      action: res?.url ? { label: "Open WhatsApp", onClick: () => window.open(res.url, "_blank", "noopener") } : undefined,
+    });
     setInCall(true);
     setTimeout(() => setInCall(false), 8000);
   };

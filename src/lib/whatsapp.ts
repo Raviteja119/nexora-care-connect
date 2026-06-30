@@ -14,19 +14,22 @@ export function openWhatsAppChat(message: string) {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const deepLink = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${text}`;
   const webUrl = `https://web.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${text}`;
-
-  if (isMobile) {
-    // Try app first, then fall back to web after a short delay.
-    window.location.href = deepLink;
-    setTimeout(() => {
-      window.open(webUrl, "_blank", "noopener,noreferrer");
-    }, 1200);
-    return;
+  try {
+    if (isMobile) {
+      window.location.href = deepLink;
+      setTimeout(() => { try { window.open(webUrl, "_blank", "noopener,noreferrer"); } catch {} }, 1200);
+      return { ok: true, url: webUrl };
+    }
+    const win = window.open(webUrl, "_blank", "noopener,noreferrer");
+    if (!win) {
+      // Popup blocked — navigate the same tab as a guaranteed fallback.
+      window.location.href = webUrl;
+    }
+    return { ok: true, url: webUrl };
+  } catch {
+    window.location.href = webUrl;
+    return { ok: false, url: webUrl };
   }
-
-  // Desktop: open web.whatsapp.com directly (no api.whatsapp.com redirect).
-  const win = window.open(webUrl, "_blank", "noopener,noreferrer");
-  if (!win) window.location.href = webUrl;
 }
 
 export function openWhatsAppVideoCall(context: string) {

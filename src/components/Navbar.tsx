@@ -16,10 +16,12 @@ import {
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { LanguageSelector } from "./LanguageSelector";
+import { NotificationBell } from "./NotificationBell";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
+import { logout } from "@/lib/auth";
 
 const navItemsRaw = [
   { key: "nav.home", path: "/dashboard", icon: Home },
@@ -42,16 +44,18 @@ export function Navbar() {
   const navItems = navItemsRaw.map((n) => ({ ...n, name: t(n.key) }));
 
   return (
-    <nav className="bg-card border-b border-border shadow-sm overflow-x-auto whitespace-nowrap">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-card border-b border-border shadow-sm sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Top Row */}
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-14 gap-2">
           
           {/* Logo */}
-          <Link to="/dashboard"><Logo size={36} /></Link>
+          <Link to="/dashboard" className="shrink-0 min-w-0">
+            <Logo size={30} />
+          </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex space-x-1">
+          <div className="hidden md:flex items-center gap-0.5 flex-1 justify-center min-w-0 overflow-x-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -60,12 +64,12 @@ export function Navbar() {
                     variant={isActive(item.path) ? "default" : "ghost"}
                     size="sm"
                     className={cn(
-                      "flex items-center space-x-2 transition-all duration-200",
+                      "flex items-center gap-1 px-2 transition-all duration-200 h-8",
                       isActive(item.path) && "shadow-md"
                     )}
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden lg:inline">{item.name}</span>
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="hidden xl:inline text-xs">{item.name}</span>
                   </Button>
                 </Link>
               );
@@ -73,29 +77,30 @@ export function Navbar() {
           </div>
 
           {/* Profile + Logout + Language */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-1 shrink-0">
+            <NotificationBell />
             <LanguageSelector />
             <Link to="/profile">
               <Button
                 variant={isActive("/profile") ? "default" : "ghost"}
                 size="sm"
-                className="flex items-center space-x-2"
+                className="flex items-center gap-1 px-2 h-8"
               >
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">{t("nav.profile")}</span>
+                <span className="hidden xl:inline text-xs">{t("nav.profile")}</span>
               </Button>
             </Link>
-            <Link to="/login" onClick={() => toast.success("Logged out successfully")}>
-              <Button variant="outline" size="sm">
+            <Link to="/login" onClick={() => { logout(); toast.success("Logged out successfully"); }}>
+              <Button variant="outline" size="sm" className="h-8 px-2">
                 <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline ml-2">{t("nav.logout")}</span>
+                <span className="hidden xl:inline ml-1 text-xs">{t("nav.logout")}</span>
               </Button>
             </Link>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden pb-2 flex flex-wrap gap-1 justify-center">
+        <div className="md:hidden pb-2 flex flex-wrap gap-1 justify-center overflow-x-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (

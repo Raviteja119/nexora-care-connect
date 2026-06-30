@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Download, Eye, Pill, Clock, User, RefreshCw, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { downloadTextFile } from "@/lib/fileUtils";
@@ -61,6 +62,15 @@ const completedPrescriptions = mockPrescriptions.filter(p => p.status === "Compl
 
 export default function Prescriptions() {
   const [selectedPrescription, setSelectedPrescription] = useState(mockPrescriptions[0]);
+  const [viewing, setViewing] = useState<typeof mockPrescriptions[0] | null>(null);
+  const [refilled, setRefilled] = useState<Record<string, boolean>>(() => {
+    try { return JSON.parse(localStorage.getItem("nexora_refills") || "{}"); } catch { return {}; }
+  });
+
+  const persistRefills = (next: Record<string, boolean>) => {
+    setRefilled(next);
+    localStorage.setItem("nexora_refills", JSON.stringify(next));
+  };
 
   const buildText = (p: typeof mockPrescriptions[0]) =>
     `NeXora Hospital - Medical Prescription\n` +
@@ -82,7 +92,9 @@ export default function Prescriptions() {
     toast.success(`Downloaded ${p.id}-prescription.txt`);
   };
   const handleRefill = (p: typeof mockPrescriptions[0]) => {
-    toast.success(`Refill request sent to ${p.pharmacy}`);
+    if (refilled[p.id]) { toast.info("Refill already requested for this prescription."); return; }
+    persistRefills({ ...refilled, [p.id]: true });
+    toast.success(`Refill request sent to ${p.pharmacy} — expect delivery in 2–3 hours.`);
   };
   const handleCallPharmacy = (p: typeof mockPrescriptions[0]) => {
     window.open(`tel:${p.pharmacyPhone.replace(/[^+\d]/g, "")}`, "_self");
@@ -233,7 +245,7 @@ export default function Prescriptions() {
                     )}
 
                     <div className="flex gap-2 flex-wrap">
-                      <Button variant="outline" size="sm" onClick={() => toast.info(`Viewing full Rx ${selectedPrescription.id}`)}>
+                      <Button variant="outline" size="sm" onClick={() => setViewing(selectedPrescription)}>
                         <Eye className="h-4 w-4 mr-2" />
                         View Full
                       </Button>
@@ -243,9 +255,9 @@ export default function Prescriptions() {
                       </Button>
                       {selectedPrescription.status === "Active" && (
                         <>
-                          <Button variant="outline" size="sm" onClick={() => handleRefill(selectedPrescription)}>
+                          <Button variant="outline" size="sm" onClick={() => handleRefill(selectedPrescription)} disabled={refilled[selectedPrescription.id]}>
                             <RefreshCw className="h-4 w-4 mr-2" />
-                            Request Refill
+                            {refilled[selectedPrescription.id] ? "Refill Requested" : "Request Refill"}
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => handleCallPharmacy(selectedPrescription)}>
                             <Phone className="h-4 w-4 mr-2" />
@@ -284,11 +296,11 @@ export default function Prescriptions() {
                       <strong>Medications:</strong> {prescription.medications.length} items
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setSelectedPrescription(prescription)}>
+                      <Button variant="outline" size="sm" onClick={() => { setSelectedPrescription(prescription); setViewing(prescription); }}>
                         View Details
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleRefill(prescription)}>
-                        Request Refill
+                      <Button variant="outline" size="sm" onClick={() => handleRefill(prescription)} disabled={refilled[prescription.id]}>
+                        {refilled[prescription.id] ? "Refill Requested" : "Request Refill"}
                       </Button>
                     </div>
                   </div>
@@ -323,7 +335,7 @@ export default function Prescriptions() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => setSelectedPrescription(prescription)}
+                      onClick={() => { setSelectedPrescription(prescription); setViewing(prescription); }}
                     >
                       View Details
                     </Button>
@@ -333,6 +345,41 @@ export default function Prescriptions() {
             ))}
           </TabsContent>
         </Tabs>
+
+        <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2"><Pill className="h-5 w-5 text-primary" /> Prescription {viewing?.id}</DialogTitle>
+              <DialogDescription>Issued by {viewing?.doctorName} on {viewing?.date}</DialogDescription>
+            </DialogHeader>
+            {viewing && (
+              <div className="space-y-4 text-sm">
+                <div><strong>Diagnosis:</strong> {viewing.diagnosis}</div>
+                <div>
+                  <strong>Medications:</strong>
+                  <ul className="mt-2 space-y-2">
+                    {viewing.medications.map((m, i) => (
+                      <li key={i} className="border rounded p-2">
+                        <div className="font-medium">{m.name} — {m.dosage}</div>
+                        <div className="text-xs text-muted-foreground">{m.frequency} · {m.duration}{m.remaining !== undefined ? ` · ${m.remaining} pills left` : ""}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div><strong>Instructions:</strong> {viewing.instructions}</div>
+                <div className="bg-muted/50 p-3 rounded"><strong>Pharmacy:</strong> {viewing.pharmacy} · {viewing.pharmacyPhone} · Refills left: {viewing.refillsRemaining}</div>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => handleDownload(viewing)}><Download className="h-4 w-4 mr-2" /> Download</Button>
+                  {viewing.status === "Active" && (
+                    <Button onClick={() => handleRefill(viewing)} disabled={refilled[viewing.id]}>
+                      <RefreshCw className="h-4 w-4 mr-2" /> {refilled[viewing.id] ? "Refill Requested" : "Request Refill"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
