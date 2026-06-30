@@ -42,77 +42,84 @@ export default function Chat() {
 
   useEffect(() => { scrollToBottom(); }, [messages, isTyping]);
 
-  const smartReply = (text: string, role: string): string => {
-    const t = text.toLowerCase().trim();
-    const has = (...words: string[]) => words.some((w) => t.includes(w));
+  // ---- Smart reply: intent classification + memory so it never just repeats ----
+  const lastReplyRef = useRef<string>("");
+  const lastIntentRef = useRef<string>("");
 
-    // Greetings
-    if (has("hi", "hello", "hey", "namaste", "good morning", "good evening")) {
-      return `Hi there! 👋 I'm ${selectedStaff.name} from NeXora ${role}. How can I help you today? You can ask me about appointments, beds, doctors, lab tests, prescriptions, billing or emergencies.`;
+  type Intent = { key: string; keywords: string[]; reply: (t: string, ctx: { last: string; staff: string; role: string }) => string };
+  const intents: Intent[] = [
+    { key: "greet", keywords: ["hi", "hello", "hey", "namaste", "good morning", "good evening", "good afternoon"], reply: (_t, c) => `Hi there! 👋 I'm ${c.staff} from NeXora ${c.role}. I can help with appointments, beds, prescriptions, lab results, billing, video calls or emergencies — what's on your mind?` },
+    { key: "thanks", keywords: ["thank", "thanks", "ty", "🙏", "appreciate"], reply: () => "You're most welcome! 😊 Anything else I can do for you today?" },
+    { key: "bye", keywords: ["bye", "goodbye", "see you", "later"], reply: () => "Take care! Reach me here anytime. Stay healthy 💚" },
+    { key: "book_appt", keywords: ["book", "appointment", "schedule", "slot", "consult"], reply: () => "Sure — which speciality? Cardiology, General Medicine, Pediatrics, Orthopedics, Dermatology or Neurology? Next free slot today: Dr. Sarah Wilson (Cardiology) at 4:30 PM." },
+    { key: "cancel_appt", keywords: ["cancel appointment", "cancel my", "cancel booking", "cancel the"], reply: () => "I can cancel that. Share the doctor name or date, or open the Appointments page → red Cancel button. The slot frees up instantly." },
+    { key: "reschedule_appt", keywords: ["reschedule", "postpone", "change appointment", "change time", "change date"], reply: () => "Tell me the new preferred date and time, or use OP Rescheduling. I'll confirm in under a minute." },
+    { key: "beds", keywords: ["bed", "admission", "admit", "ward", "icu", "room", "vacancy"], reply: () => "Live availability → General: 23 · ICU: 15 · Special Care: 9 · Maternity: 11 · Pediatric: 6. Want me to reserve one? Share patient name + admission time." },
+    { key: "prescription", keywords: ["prescription", "rx", "medicine", "medication", "tablet", "refill", "pharmacy"], reply: () => "Active Rx: Lisinopril 10 mg (1×/day), Metformin 500 mg (2×/day). I can raise a refill — should I send it to HealthCare Pharmacy for 2-hour delivery?" },
+    { key: "lab", keywords: ["lab", "test", "blood", "report", "result", "x-ray", "scan", "mri", "ct", "ultrasound", "ecg"], reply: () => "Recent reports → CBC (Normal), Lipid Profile (LDL 132 borderline), HbA1c 6.4%. Download from Lab Tests page. Want to book a new test?" },
+    { key: "billing", keywords: ["bill", "payment", "invoice", "insurance", "claim", "cost", "price", "charges", "refund"], reply: () => "Last invoice #INV-2421 = ₹3,450 — fully paid. Insurance reimbursement ₹2,800 processed 12-Jun. Need a GST receipt or itemised break-up?" },
+    { key: "emergency", keywords: ["emergency", "ambulance", "urgent", "108", "chest pain", "stroke", "fainting", "bleeding heavily", "unconscious"], reply: () => "🚨 If life-threatening: open Emergency → REQUEST EMERGENCY HELP. Ambulance dispatch + first-aid audio starts instantly. Want me to start it now?" },
+    { key: "doctors", keywords: ["doctor", "physician", "specialist", "cardiologist", "dermatologist", "pediatrician", "gynecologist", "neurologist"], reply: () => "On duty now: Dr. Sarah Wilson (Cardiology ⭐4.9), Dr. Michael Chen (Neurology ⭐4.8), Dr. Emily Davis (Dermatology ⭐4.7), Dr. Teja (On-call). Reply with a name to connect." },
+    { key: "video", keywords: ["video call", "video", "online consult", "telemedicine", "online appointment"], reply: () => "Tap the 📹 icon above to start a WhatsApp video consult with our on-call doctor (₹399). Or schedule one from the Video Call page." },
+    { key: "profile", keywords: ["profile", "my details", "address", "update info", "personal info", "blood group", "allergy"], reply: () => "Open Profile to update blood group, allergies and emergency contacts. Keeping it current speeds up care during emergencies." },
+    { key: "feedback", keywords: ["feedback", "complaint", "complain", "suggestion", "review", "rating"], reply: () => "Please share it on the Feedback page — serious complaints reach the Quality team within 4 hours." },
+    { key: "directions", keywords: ["distance", "direction", "how far", "where", "location", "reach", "map", "parking"], reply: () => "NeXora General Hospital — MG Road, Bangalore. Open Distance Tracker for live ETA. Free patient parking at Gate 2." },
+    { key: "hours", keywords: ["hour", "timing", "open", "closed", "schedule today", "available", "shift"], reply: () => "OPD: Mon–Sat 8 AM–8 PM, Sun 9 AM–1 PM. Emergency & Pharmacy: 24×7. Lab collection: 7 AM–9 PM." },
+    { key: "covid", keywords: ["covid", "corona", "vaccine", "vaccination", "booster"], reply: () => "Covid booster shots available walk-in 9 AM–5 PM, ₹250. Bring Aadhaar + Cowin OTP." },
+    { key: "diet", keywords: ["diet", "food", "nutrition", "what to eat"], reply: () => "Our dietitian Ms. Kavya offers free 15-min consults on Tue/Thu 11 AM. Want me to book one?" },
+    { key: "discharge", keywords: ["discharge", "going home", "leaving hospital"], reply: () => "Discharge summary is prepared 2 hours after the doctor signs off. You'll get it on WhatsApp + Profile → Documents." },
+    { key: "yes", keywords: ["^yes$", "^yeah$", "^sure$", "^ok$", "^okay$", "please do", "go ahead"], reply: (_t, c) => {
+      // Use last intent to give a contextual confirmation
+      const map: Record<string, string> = {
+        book_appt: "Great — booking Dr. Sarah Wilson at 4:30 PM today. Confirmation will pop into your bell 🔔 within 1 minute.",
+        prescription: "Refill request raised with HealthCare Pharmacy — expect delivery in 2–3 hours.",
+        lab: "I've added a CBC + Lipid Profile to your cart. Pay & schedule from the Lab Tests page.",
+        emergency: "Opening the Emergency page now. Stay calm — help is on the way.",
+        video: "Starting WhatsApp video consult with Dr. Teja (on-call) now.",
+      };
+      return map[c.last] || "Got it. Please share one more detail (date, doctor name or symptoms) so I can move forward.";
+    } },
+    { key: "no", keywords: ["^no$", "^nope$", "not now", "later"], reply: () => "No problem — I'm here whenever you need anything. 💚" },
+  ];
+
+  const match = (text: string): Intent | null => {
+    const t = text.toLowerCase().trim();
+    for (const intent of intents) {
+      for (const kw of intent.keywords) {
+        const re = kw.startsWith("^") ? new RegExp(kw) : null;
+        if (re ? re.test(t) : t.includes(kw)) return intent;
+      }
     }
-    // Appointments
-    if (has("appointment", "book", "schedule", "consult", "slot")) {
-      if (has("cancel")) return "I can cancel that for you. Could you share the appointment date or doctor name? You can also cancel directly from the Appointments page.";
-      if (has("reschedule", "change", "postpone")) return "Sure — head to OP Rescheduling from the menu, or tell me the new preferred date and time and I'll move it for you.";
-      return "I can book an appointment for you. Which speciality do you need — Cardiology, General Medicine, Pediatrics, Orthopedics, Dermatology or Neurology? Your next available slot with Dr. Sarah Wilson (Cardiology) is today 4:30 PM.";
+    return null;
+  };
+
+  const smartReply = (text: string, role: string): string => {
+    const intent = match(text);
+    const ctx = { last: lastIntentRef.current, staff: selectedStaff.name, role };
+    let reply: string;
+    if (intent) {
+      reply = intent.reply(text, ctx);
+      lastIntentRef.current = intent.key;
+    } else {
+      // Contextual fallback — asks a clarifying question that varies based on last topic, never repeats.
+      const followUps: Record<string, string> = {
+        book_appt: "Could you share the speciality you need, or a preferred date?",
+        beds: "Should I look at General, ICU, or Maternity beds for you?",
+        lab: "Which test are you asking about — CBC, lipid, X-ray, MRI, or something else?",
+        prescription: "Which medicine — Lisinopril, Metformin, or a new one?",
+        emergency: "Is this happening RIGHT NOW? If yes I'll start the ambulance dispatch immediately.",
+      };
+      const ctxQ = followUps[lastIntentRef.current];
+      reply = ctxQ
+        ? `Just to make sure I help correctly — ${ctxQ}`
+        : `I'm not 100% sure I got that. Could you rephrase, or pick a topic: appointments · beds · prescriptions · lab results · billing · video call · emergency?`;
     }
-    // Beds
-    if (has("bed", "admission", "admit", "ward", "icu", "room")) {
-      return "Live bed availability right now → General: 23, ICU: 15, Special Care: 9, Maternity: 11, Pediatric: 6. Would you like me to reserve one? Please share patient name and approximate admission time.";
+    // Hard guarantee: never send the exact same reply twice in a row
+    if (reply === lastReplyRef.current) {
+      reply = `Just to add — ${reply}`;
     }
-    // Prescriptions
-    if (has("prescription", "medicine", "medication", "refill", "tablet", "pharmacy")) {
-      return "Your active prescriptions are: 1) Lisinopril 10 mg — once daily, 2) Metformin 500 mg — twice daily. I've raised a refill request with HealthCare Pharmacy (delivery in 2–3 hours). Need anything else?";
-    }
-    // Lab tests
-    if (has("lab", "test", "blood", "report", "result", "x-ray", "scan", "mri", "ct")) {
-      return "Your last 3 lab results are ready: CBC (Normal), Lipid Profile (Borderline LDL 132 mg/dL), HbA1c (6.4%). View or download from the Lab Tests page. Would you like to book a new test?";
-    }
-    // Billing
-    if (has("bill", "payment", "invoice", "insurance", "claim", "cost", "price", "charges")) {
-      return "Your last invoice #INV-2421 of ₹3,450 is FULLY PAID. Insurance reimbursement of ₹2,800 was processed on 12-Jun. Need a GST receipt or detailed break-up?";
-    }
-    // Emergency
-    if (has("emergency", "ambulance", "urgent", "108", "accident", "chest pain", "stroke", "fainting")) {
-      return "🚨 If this is life-threatening, please tap REQUEST EMERGENCY HELP on the Emergency page now — an ambulance will be dispatched and recorded first-aid instructions will play. I'm staying on this chat. Type DOCTOR to start an immediate video consultation.";
-    }
-    // Doctors
-    if (has("doctor", "physician", "specialist", "cardiologist", "dermatologist", "pediatrician")) {
-      return "Available doctors right now: Dr. Sarah Wilson (Cardiology, ⭐4.9), Dr. Michael Chen (Neurology, ⭐4.8), Dr. Emily Davis (Dermatology, ⭐4.7). Reply with a name to book a slot or video call.";
-    }
-    // Video call
-    if (has("video", "call", "consultation", "online")) {
-      return "I can connect you to a doctor over WhatsApp video. Tap 'Video Call' at the top of this chat or visit the Video Call page. Standard consultation fee is ₹399.";
-    }
-    // Profile
-    if (has("profile", "details", "address", "update", "personal")) {
-      return "You can update your personal details, allergies, blood group and emergency contacts from the Profile page. Keeping it current helps us serve you faster in emergencies.";
-    }
-    // Feedback / complaint
-    if (has("feedback", "complaint", "complain", "suggestion", "review")) {
-      return "We'd love your feedback! Please visit the Feedback page and rate your last visit. Serious complaints are escalated to the Quality team within 4 hours.";
-    }
-    // Distance / directions
-    if (has("distance", "direction", "how far", "address", "location", "reach", "map")) {
-      return "NeXora General Hospital is at MG Road, Bangalore. Use the Distance Tracker page for live distance, ETA and route map. Free patient parking is available at Gate 2.";
-    }
-    // Hours
-    if (has("hour", "timing", "open", "close", "available")) {
-      return "OPD: Mon–Sat 8 AM – 8 PM, Sun 9 AM – 1 PM. Emergency & Pharmacy: 24×7. Lab collection: 7 AM – 9 PM daily.";
-    }
-    // Thanks
-    if (has("thank", "thanks", "ty", "🙏")) {
-      return "You're most welcome! 😊 Wishing you good health. Is there anything else I can help with?";
-    }
-    // Yes / No
-    if (t === "yes" || t === "yeah" || t === "sure" || t === "ok") {
-      return "Great! Please share a bit more detail so I can help you faster — e.g., patient name, preferred date/time, or symptoms.";
-    }
-    if (t === "no" || t === "nope") {
-      return "No problem. I'm here whenever you need anything else. Stay healthy! 💚";
-    }
-    // Fallback
-    return `I understand you're asking about "${text.slice(0, 60)}". Could you tell me a bit more? I can help with appointments, bed availability, prescriptions, lab tests, billing, doctor video calls, or emergencies — just type a keyword like "book doctor" or "lab report".`;
+    lastReplyRef.current = reply;
+    return reply;
   };
 
   const handleSendMessage = () => {
