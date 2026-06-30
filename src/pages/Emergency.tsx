@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -186,9 +186,35 @@ export default function Emergency() {
 
   // Sync local instruction language with globally selected app language
   useEffect(() => {
-    const map: Record<string, string> = { en: "english", hi: "hindi", ta: "tamil", te: "telugu" };
+    const map: Record<string, string> = { en: "english", hi: "hindi", ta: "tamil", te: "telugu", kn: "kannada", ml: "malayalam", es: "spanish", fr: "french", ar: "arabic" };
     if (map[lang]) setSelectedLanguage(map[lang]);
   }, [lang]);
+
+  // Re-speak when user switches language while an emergency is selected
+  useEffect(() => {
+    if (selectedEmergency) {
+      const txt = localiseInstruction(selectedEmergency, selectedLanguage);
+      setAudioMessage(txt);
+      playAudioMessage(txt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedLanguage]);
+
+  // Auto-play when the user picks an emergency type
+  useEffect(() => {
+    if (selectedEmergency && !emergencyRequested) {
+      const txt = localiseInstruction(selectedEmergency, selectedLanguage);
+      setAudioMessage(txt);
+      playAudioMessage(txt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEmergency]);
+
+  function localiseInstruction(type: string, language: string): string {
+    const instr = (emergencyInstructions as any)[type];
+    if (!instr) return "";
+    return instr.audio[language] || instr.audio.english || instr.message;
+  }
 
   const handleEmergencyRequest = () => {
     setEmergencyRequested(true);
@@ -201,22 +227,39 @@ export default function Emergency() {
   };
 
   const playAudioMessage = (message: string) => {
+    if (!message) return;
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
       setIsPlayingAudio(true);
       const utterance = new SpeechSynthesisUtterance(message);
       const langMap: Record<string, string> = {
-        english: "en-US", hindi: "hi-IN", tamil: "ta-IN", telugu: "te-IN",
+        english: "en-IN", hindi: "hi-IN", tamil: "ta-IN", telugu: "te-IN",
+        kannada: "kn-IN", malayalam: "ml-IN", spanish: "es-ES", french: "fr-FR", arabic: "ar-SA",
       };
-      utterance.lang = langMap[selectedLanguage] || ttsLangCode(lang);
-      // Prefer a voice matching the selected language if available
-      const voices = speechSynthesis.getVoices();
-      const match = voices.find((v) => v.lang === utterance.lang) || voices.find((v) => v.lang.startsWith(utterance.lang.split("-")[0]));
-      if (match) utterance.voice = match;
+      const target = langMap[selectedLanguage] || ttsLangCode(lang);
+      utterance.lang = target;
+      const speakNow = () => {
+        const voices = speechSynthesis.getVoices();
+        const exact = voices.find((v) => v.lang.toLowerCase() === target.toLowerCase());
+        const prefix = voices.find((v) => v.lang.toLowerCase().startsWith(target.split("-")[0].toLowerCase()));
+        if (exact || prefix) {
+          utterance.voice = exact || prefix!;
+        } else if (selectedLanguage !== "english") {
+          toast.info(`Voice pack for ${selectedLanguage} not installed — speaking instructions in English.`);
+          utterance.lang = "en-IN";
+          const en = voices.find((v) => v.lang.startsWith("en"));
+          if (en) utterance.voice = en;
+        }
+        speechSynthesis.speak(utterance);
+      };
+      if (speechSynthesis.getVoices().length === 0) {
+        speechSynthesis.onvoiceschanged = () => { speechSynthesis.onvoiceschanged = null; speakNow(); };
+      } else {
+        speakNow();
+      }
       utterance.rate = 0.85;
       utterance.volume = 1;
       utterance.onend = () => setIsPlayingAudio(false);
-      speechSynthesis.speak(utterance);
     }
   };
 
@@ -235,8 +278,11 @@ export default function Emergency() {
 
   const handleVideoCall = () => {
     const type = emergencyTypes.find((t) => t.value === selectedEmergency)?.label ?? "Emergency";
-    openWhatsAppVideoCall(`🚨 EMERGENCY: ${type}\nPatient needs immediate video consultation with on-call doctor.`);
-    toast.success("Opening WhatsApp emergency video call...");
+    const res = openWhatsAppVideoCall(`🚨 EMERGENCY: ${type}\nPatient needs immediate video consultation with on-call doctor.`);
+    toast.success("Opening WhatsApp emergency video call...", {
+      description: "If WhatsApp didn't launch, tap retry.",
+      action: res?.url ? { label: "Retry", onClick: () => window.open(res.url, "_blank", "noopener") } : undefined,
+    });
     setVideoCallActive(true);
     setTimeout(() => setVideoCallActive(false), 8000);
   };
@@ -244,10 +290,14 @@ export default function Emergency() {
   const handleEmergencyRequestWithAlert = () => {
     handleEmergencyRequest();
     const type = emergencyTypes.find((t) => t.value === selectedEmergency)?.label ?? "Emergency";
-    openWhatsAppChat(
+    const res = openWhatsAppChat(
       `🚨 EMERGENCY ALERT - ${type}\n\nA patient has requested emergency ambulance dispatch via NeXora.\n\nDetails: ${additionalInfo || "No additional info provided"}\n\nPlease confirm dispatch and ETA.`,
     );
-    toast.success("Emergency alert sent to hospital via WhatsApp", { duration: 5000 });
+    toast.success("Emergency alert sent to hospital via WhatsApp", {
+      duration: 5000,
+      description: "If WhatsApp didn't open, tap retry.",
+      action: res?.url ? { label: "Retry", onClick: () => window.open(res.url, "_blank", "noopener") } : undefined,
+    });
   };
 
   if (videoCallActive) {
