@@ -19,7 +19,10 @@ const icon = (t: NexoraNotification["type"]) => {
 export function NotificationBell() {
   const [items, setItems] = useState<NexoraNotification[]>(getNotifications());
   const navigate = useNavigate();
-  useEffect(() => subscribe(setItems), []);
+  useEffect(() => {
+    const unsub = subscribe(setItems);
+    return () => { unsub(); };
+  }, []);
   const unread = items.filter((i) => !i.read).length;
 
   return (
