@@ -17,8 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { openWhatsAppChat } from "@/lib/whatsapp";
-import { motion } from "framer-motion";
-import { Ambulance } from "lucide-react";
+import { AmbulanceMap } from "@/components/AmbulanceMap";
 
 interface LocationData {
   distance: string;
@@ -105,8 +104,11 @@ export default function Track() {
       ambulanceStatus: "dispatched",
       ambulanceETA: "15 minutes"
     }));
-    openWhatsAppChat(`🚑 Ambulance dispatch requested for patient near ${userPos ? `${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}` : "current location"}.`);
-    toast.success("Ambulance dispatched! ETA 15 minutes");
+    const res = openWhatsAppChat(`🚑 Ambulance dispatch requested for patient near ${userPos ? `${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}` : "current location"}.`);
+    toast.success("Ambulance dispatched! ETA 15 minutes", {
+      description: "If WhatsApp didn't open, tap retry.",
+      action: res?.url ? { label: "Retry", onClick: () => window.open(res.url, "_blank", "noopener") } : undefined,
+    });
   };
 
   useEffect(() => {
@@ -160,10 +162,6 @@ export default function Track() {
     }
   };
 
-  // Build OSM embed URL — bbox around user, marker at user position
-  const center = userPos ?? HOSPITAL;
-  const bbox = `${center.lng - 0.05},${center.lat - 0.04},${center.lng + 0.05},${center.lat + 0.04}`;
-  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${center.lat},${center.lng}`;
   const shareLocation = () => {
     if (!userPos) return toast.error("Location not available yet");
     const text = `📍 My current location: https://maps.google.com/?q=${userPos.lat},${userPos.lng}`;
@@ -382,63 +380,16 @@ export default function Track() {
           </CardHeader>
           <CardContent>
             <div className="relative aspect-video rounded-lg overflow-hidden border bg-muted">
-              <iframe
-                title="Live Map"
-                src={mapUrl}
-                className="w-full h-full"
-                loading="lazy"
+              <AmbulanceMap
+                hospital={HOSPITAL}
+                user={userPos}
+                ambulanceActive={locationData.ambulanceStatus === "en-route" || locationData.ambulanceStatus === "dispatched" || locationData.ambulanceStatus === "arrived"}
+                progress={ambProgress}
               />
-              {/* Animated ambulance overlay (only when active) */}
               {locationData.ambulanceStatus !== "not-requested" && (
-                <div className="pointer-events-none absolute inset-0">
-                  {/* Route path */}
-                  <svg viewBox="0 0 100 56" preserveAspectRatio="none" className="w-full h-full absolute inset-0">
-                    <defs>
-                      <linearGradient id="route" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity="0.9" />
-                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.9" />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d="M 85 12 Q 60 30 50 28 T 15 44"
-                      fill="none"
-                      stroke="url(#route)"
-                      strokeWidth="0.8"
-                      strokeDasharray="2 1.5"
-                      className="animate-pulse"
-                    />
-                    {/* Hospital marker */}
-                    <circle cx="85" cy="12" r="1.6" fill="hsl(var(--primary))" />
-                    {/* User marker */}
-                    <circle cx="15" cy="44" r="1.6" fill="hsl(var(--destructive))" />
-                  </svg>
-                  {/* Moving ambulance icon */}
-                  <motion.div
-                    className="absolute"
-                    initial={{ left: "85%", top: "20%" }}
-                    animate={{
-                      left: ["85%", "60%", "40%", "15%"],
-                      top: ["20%", "55%", "50%", "75%"],
-                    }}
-                    transition={{
-                      duration: locationData.ambulanceStatus === "arrived" ? 0 : 50,
-                      ease: "linear",
-                      repeat: locationData.ambulanceStatus === "en-route" ? 0 : 0,
-                    }}
-                    style={{ transform: "translate(-50%, -50%)" }}
-                  >
-                    <div className="relative">
-                      <div className="absolute inset-0 -m-2 rounded-full bg-destructive/30 animate-ping" />
-                      <div className="relative bg-destructive text-destructive-foreground rounded-full p-2 shadow-lg">
-                        <Ambulance className="h-5 w-5" />
-                      </div>
-                    </div>
-                  </motion.div>
-                  {/* Labels */}
-                  <div className="absolute top-2 right-2 bg-card/90 backdrop-blur px-3 py-1.5 rounded-md shadow text-xs font-medium flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 rounded-full bg-destructive animate-pulse" />
-                    Ambulance {locationData.ambulanceStatus.replace("-", " ")} · ETA {locationData.ambulanceETA}
-                  </div>
+                <div className="absolute top-2 right-2 z-[1000] bg-card/90 backdrop-blur px-3 py-1.5 rounded-md shadow text-xs font-medium flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-destructive animate-pulse" />
+                  Ambulance {locationData.ambulanceStatus.replace("-", " ")} · ETA {locationData.ambulanceETA}
                 </div>
               )}
             </div>
