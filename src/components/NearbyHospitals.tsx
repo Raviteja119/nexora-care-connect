@@ -21,8 +21,17 @@ export function NearbyHospitals() {
     );
   }, []);
 
+  // Only show hospitals within ~50 km of the patient. Distant hospitals are
+  // useless in emergency situations. Falls back to nearest 5 if none in range.
+  const RADIUS_KM = 50;
   const list: (Hospital & { km?: number })[] = pos
-    ? HOSPITALS.map((h) => ({ ...h, km: haversineKm(pos, h) })).sort((a, b) => (a.km! - b.km!)).slice(0, 5)
+    ? (() => {
+        const withDist = HOSPITALS
+          .map((h) => ({ ...h, km: haversineKm(pos, h) }))
+          .sort((a, b) => a.km - b.km);
+        const near = withDist.filter((h) => h.km <= RADIUS_KM);
+        return near.length > 0 ? near : withDist.slice(0, 5);
+      })()
     : HOSPITALS.slice(0, 5);
 
   return (

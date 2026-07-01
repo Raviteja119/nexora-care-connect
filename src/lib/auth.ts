@@ -1,9 +1,12 @@
 // Simple localStorage-backed user registry for demo mode.
+export type UserRole = "patient" | "staff" | "admin";
+
 export interface DemoUser {
   name: string;
   email: string;
   phone?: string;
   password: string;
+  role: UserRole;
   createdAt: string;
 }
 
@@ -15,12 +18,12 @@ function readUsers(): DemoUser[] {
 }
 function writeUsers(u: DemoUser[]) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
 
-export function registerUser(u: Omit<DemoUser, "createdAt">): { ok: boolean; error?: string } {
+export function registerUser(u: Omit<DemoUser, "createdAt" | "role"> & { role?: UserRole }): { ok: boolean; error?: string } {
   const users = readUsers();
   if (users.find((x) => x.email.toLowerCase() === u.email.toLowerCase())) {
     return { ok: false, error: "An account with this email already exists" };
   }
-  const newUser: DemoUser = { ...u, createdAt: new Date().toISOString() };
+  const newUser: DemoUser = { ...u, role: u.role ?? "patient", createdAt: new Date().toISOString() };
   users.push(newUser);
   writeUsers(users);
   setCurrentUser(newUser);
@@ -36,13 +39,13 @@ export function loginUser(email: string, password: string): { ok: boolean; error
   return { ok: true };
 }
 
-export function loginByMobile(phone: string): { ok: boolean; error?: string } {
+export function loginByMobile(phone: string, role: UserRole = "patient"): { ok: boolean; error?: string } {
   const users = readUsers();
   const found = users.find((x) => x.phone && x.phone.replace(/\D/g, "").endsWith(phone.replace(/\D/g, "").slice(-10)));
   if (found) setCurrentUser(found);
   else {
     // create lightweight account for demo
-    const u: DemoUser = { name: "Guest User", email: `${phone}@demo.nexora`, phone, password: "", createdAt: new Date().toISOString() };
+    const u: DemoUser = { name: "Guest User", email: `${phone}@demo.nexora`, phone, password: "", role, createdAt: new Date().toISOString() };
     const users2 = readUsers(); users2.push(u); writeUsers(users2); setCurrentUser(u);
   }
   return { ok: true };

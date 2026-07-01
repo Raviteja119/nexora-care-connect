@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Phone, Lock, Eye, EyeOff, CheckCircle2, XCircle, Sparkles, ShieldCheck, Heart } from "lucide-react";
+import { Mail, Phone, Lock, Eye, EyeOff, CheckCircle2, XCircle, Sparkles, ShieldCheck, Heart, User, Stethoscope, Shield } from "lucide-react";
 import heroImage from "@/assets/hero-medical.jpg";
 import { toast } from "sonner";
 import { validatePassword } from "@/lib/fileUtils";
-import { registerUser, loginUser, loginByMobile } from "@/lib/auth";
+import { registerUser, loginUser, loginByMobile, type UserRole } from "@/lib/auth";
 import { Logo } from "@/components/Logo";
 
 export default function Login() {
@@ -17,6 +17,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginType, setLoginType] = useState<"email" | "mobile">("email");
   const [active, setActive] = useState<"signin" | "signup">("signin");
+  const [role, setRole] = useState<UserRole>("patient");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPwd, setConfirmPwd] = useState("");
@@ -38,7 +39,7 @@ export default function Login() {
       if (!otpSent) return toast.error("Please tap 'Send OTP' first.");
       if (!otp.trim()) return toast.error("Enter the OTP you received.");
       if (otp.trim() !== otpSent) return toast.error("OTP does not match. Please re-enter the correct OTP.");
-      loginByMobile(mobile);
+      loginByMobile(mobile, role);
       toast.success("Login successful! Redirecting...");
       setTimeout(() => navigate("/dashboard"), 600);
       return;
@@ -49,7 +50,7 @@ export default function Login() {
     if (mode === "signup") {
       if (!name.trim()) return toast.error("Please enter your name");
       if (password !== confirmPwd) return toast.error("Passwords do not match");
-      const res = registerUser({ name, email, password });
+      const res = registerUser({ name, email, password, role });
       if (!res.ok) return toast.error(res.error || "Registration failed");
       toast.success(`Account created for ${name}! Redirecting...`);
     } else {
@@ -67,7 +68,10 @@ export default function Login() {
     toast.success(`OTP sent to ${mobile}: ${code}`, { description: "Demo: enter this exact OTP to log in.", duration: 10000 });
   };
 
-  const EmailFields = ({ mode }: { mode: "signin" | "signup" }) => (
+  // NOTE: fields are rendered INLINE (not as inner components) — inner
+  // components would be re-created on every render, which unmounts the
+  // <Input> and steals focus after each keystroke.
+  const renderEmailFields = (mode: "signin" | "signup") => (
     <div className="space-y-3">
       {mode === "signup" && (
         <div className="space-y-1.5">
@@ -106,7 +110,7 @@ export default function Login() {
     </div>
   );
 
-  const MobileFields = () => (
+  const renderMobileFields = () => (
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label htmlFor="mobile" className="text-xs">Mobile Number</Label>
@@ -123,6 +127,25 @@ export default function Login() {
     </div>
   );
 
+  const RoleSelector = () => (
+    <div className="grid grid-cols-3 gap-1.5 mb-3">
+      {[
+        { v: "patient" as UserRole, label: "Patient", icon: User },
+        { v: "staff" as UserRole, label: "Doctor / Staff", icon: Stethoscope },
+        { v: "admin" as UserRole, label: "Admin", icon: Shield },
+      ].map((r) => {
+        const Icon = r.icon;
+        const on = role === r.v;
+        return (
+          <button type="button" key={r.v} onClick={() => setRole(r.v)}
+            className={`flex flex-col items-center gap-1 rounded-lg border p-2 text-[10px] transition ${on ? "border-primary bg-primary/10 text-primary font-semibold" : "border-border hover:bg-muted/50"}`}>
+            <Icon className="h-3.5 w-3.5" />{r.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative overflow-hidden p-4"
@@ -134,7 +157,7 @@ export default function Login() {
 
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }} className="relative z-10 w-full max-w-4xl">
         <div className="flex justify-center mb-4">
-          <Logo size={48} />
+          <Logo size={72} />
         </div>
         <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-card/95 backdrop-blur-md border border-primary/20 min-h-[580px]">
           {/* Sign In form (left half) */}
@@ -146,13 +169,14 @@ export default function Login() {
           >
             <h2 className="text-2xl font-bold mb-1 flex items-center gap-2"><Heart className="h-5 w-5 text-primary" /> Sign In</h2>
             <p className="text-xs text-muted-foreground mb-4">Welcome back to NeXora</p>
+            <RoleSelector />
             <Tabs value={loginType} onValueChange={(v) => setLoginType(v as any)}>
               <TabsList className="grid w-full grid-cols-2 mb-3 h-9">
                 <TabsTrigger value="email" className="text-xs"><Mail className="h-3.5 w-3.5 mr-1" />Email</TabsTrigger>
                 <TabsTrigger value="mobile" className="text-xs"><Phone className="h-3.5 w-3.5 mr-1" />Mobile</TabsTrigger>
               </TabsList>
-              <TabsContent value="email"><EmailFields mode="signin" /></TabsContent>
-              <TabsContent value="mobile"><MobileFields /></TabsContent>
+              <TabsContent value="email">{renderEmailFields("signin")}</TabsContent>
+              <TabsContent value="mobile">{renderMobileFields()}</TabsContent>
             </Tabs>
             <button onClick={() => toast.info("Demo: Reset link would be emailed.")} className="text-xs text-primary hover:underline self-start mt-3">Forgot password?</button>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="mt-4">
@@ -171,13 +195,14 @@ export default function Login() {
           >
             <h2 className="text-2xl font-bold mb-1 flex items-center gap-2"><Sparkles className="h-5 w-5 text-emerald-500" /> Create Account</h2>
             <p className="text-xs text-muted-foreground mb-4">Join NeXora hospital services</p>
+            <RoleSelector />
             <Tabs value={loginType} onValueChange={(v) => setLoginType(v as any)}>
               <TabsList className="grid w-full grid-cols-2 mb-3 h-9">
                 <TabsTrigger value="email" className="text-xs"><Mail className="h-3.5 w-3.5 mr-1" />Email</TabsTrigger>
                 <TabsTrigger value="mobile" className="text-xs"><Phone className="h-3.5 w-3.5 mr-1" />Mobile</TabsTrigger>
               </TabsList>
-              <TabsContent value="email"><EmailFields mode="signup" /></TabsContent>
-              <TabsContent value="mobile"><MobileFields /></TabsContent>
+              <TabsContent value="email">{renderEmailFields("signup")}</TabsContent>
+              <TabsContent value="mobile">{renderMobileFields()}</TabsContent>
             </Tabs>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="mt-4">
               <Button variant="medical" className="w-full h-10 font-medium uppercase tracking-wide" onClick={() => handleSubmit("signup")}>

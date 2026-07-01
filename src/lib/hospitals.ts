@@ -21,6 +21,14 @@ export const HOSPITALS: Hospital[] = [
   { id: "h8", name: "Apollo Hospitals Chennai", lat: 13.0651, lng: 80.2549, phone: "+914428290200", speciality: "Multi-speciality", city: "Chennai", emergency24x7: true },
   { id: "h9", name: "KIMS Hospital", lat: 17.4376, lng: 78.4482, phone: "+914044885000", speciality: "Multi-speciality", city: "Hyderabad", emergency24x7: true },
   { id: "h10", name: "Yashoda Hospitals", lat: 17.4123, lng: 78.4801, phone: "+914045674567", speciality: "Multi-speciality", city: "Hyderabad", emergency24x7: true },
+  // Guntur (AP)
+  { id: "g1", name: "Guntur Government General Hospital", lat: 16.3067, lng: 80.4365, phone: "+918632234200", speciality: "Multi-speciality", city: "Guntur", emergency24x7: true },
+  { id: "g2", name: "NRI General Hospital", lat: 16.4419, lng: 80.6221, phone: "+918645244555", speciality: "Multi-speciality", city: "Guntur", emergency24x7: true },
+  { id: "g3", name: "Manipal Hospitals Vijayawada", lat: 16.5062, lng: 80.6480, phone: "+918666666555", speciality: "Multi-speciality", city: "Vijayawada", emergency24x7: true },
+  { id: "g4", name: "Katuri Medical College & Hospital", lat: 16.3410, lng: 80.5320, phone: "+918632350005", speciality: "Multi-speciality", city: "Guntur", emergency24x7: true },
+  { id: "g5", name: "Ramesh Hospitals", lat: 16.5040, lng: 80.6480, phone: "+918666666333", speciality: "Cardiac & Neuro", city: "Vijayawada", emergency24x7: true },
+  { id: "g6", name: "Lalitha Super Specialities Hospital", lat: 16.3103, lng: 80.4344, phone: "+918632220100", speciality: "Multi-speciality", city: "Guntur", emergency24x7: true },
+  { id: "g7", name: "Amaravati Institute of Medical Sciences", lat: 16.3200, lng: 80.4400, phone: "+918632200200", speciality: "Multi-speciality", city: "Guntur", emergency24x7: true },
 ];
 
 export function haversineKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {

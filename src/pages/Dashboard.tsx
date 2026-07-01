@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import dashboardBg from "@/assets/dashboard-bg.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NearbyHospitals } from "@/components/NearbyHospitals";
-import { LiveClock } from "@/components/LiveClock";
 import { OnboardingTour } from "@/components/OnboardingTour";
 
 const quickStats = [
@@ -36,7 +35,6 @@ export default function Dashboard() {
         <div className="relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${dashboardBg})` }}>
           <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm" />
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-            <div className="flex justify-center mb-4"><LiveClock /></div>
             <h1 className="text-4xl font-bold text-foreground mb-4">{t("common.welcome")}</h1>
             <p className="text-xl text-muted-foreground mb-8">{t("common.tagline")}</p>
             <Link to="/emergency">

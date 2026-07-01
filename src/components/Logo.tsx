@@ -13,14 +13,14 @@ export function Logo({ size = 40, withText = true, className = "" }: LogoProps) 
         src={logo}
         alt="NeXora"
         style={{ width: size, height: size }}
-        className="object-contain rounded-md mix-blend-multiply shrink-0"
+        className="object-contain rounded-lg mix-blend-multiply shrink-0 ring-2 ring-primary/20"
       />
       {withText && (
         <div className="leading-tight min-w-0">
-          <h1 className="text-lg font-bold bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent truncate">
+          <h1 className="text-xl md:text-2xl font-extrabold bg-gradient-to-r from-primary via-emerald-500 to-primary bg-clip-text text-transparent truncate tracking-tight">
             NeXora
           </h1>
-          <p className="text-[9px] text-muted-foreground -mt-0.5 truncate">Hospital Services</p>
+          <p className="text-[10px] text-muted-foreground -mt-0.5 truncate">Hospital Services</p>
         </div>
       )}
     </div>
