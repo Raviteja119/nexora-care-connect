@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { useEffect, useMemo, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -32,18 +31,12 @@ interface Props {
   progress: number; // 0..100
 }
 
-function FitBounds({ a, b }: { a: [number, number]; b: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.fitBounds([a, b], { padding: [40, 40] });
-  }, [a[0], a[1], b[0], b[1]]); // eslint-disable-line
-  return null;
-}
-
 export function AmbulanceMap({ hospital, user, ambulanceActive, progress }: Props) {
-  const center: [number, number] = user ? [user.lat, user.lng] : [hospital.lat, hospital.lng];
-  // Interpolate ambulance position along straight line from hospital → user
-  const ambPos: [number, number] | null = useMemo(() => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const layersRef = useRef<{ hosp?: L.Marker; user?: L.Marker; amb?: L.Marker; route?: L.Polyline }>({});
+
+  const ambPos = useMemo<[number, number] | null>(() => {
     if (!user || !ambulanceActive) return null;
     const t = Math.min(1, Math.max(0, progress / 100));
     return [
@@ -52,28 +45,68 @@ export function AmbulanceMap({ hospital, user, ambulanceActive, progress }: Prop
     ];
   }, [hospital, user, ambulanceActive, progress]);
 
-  const route: [number, number][] = user ? [[hospital.lat, hospital.lng], [user.lat, user.lng]] : [];
+  // Init map once
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+    const map = L.map(containerRef.current, { scrollWheelZoom: true }).setView(
+      user ? [user.lat, user.lng] : [hospital.lat, hospital.lng],
+      13,
+    );
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap",
+    }).addTo(map);
+    layersRef.current.hosp = L.marker([hospital.lat, hospital.lng], { icon: hospitalIcon })
+      .bindPopup(hospital.name)
+      .addTo(map);
+    mapRef.current = map;
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      layersRef.current = {};
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return (
-    <div className="w-full h-full">
-      <MapContainer center={center} zoom={13} style={{ width: "100%", height: "100%", borderRadius: "0.5rem" }} scrollWheelZoom>
-        <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <Marker position={[hospital.lat, hospital.lng]} icon={hospitalIcon}>
-          <Popup>{hospital.name}</Popup>
-        </Marker>
-        {user && (
-          <Marker position={[user.lat, user.lng]}>
-            <Popup>Your location</Popup>
-          </Marker>
-        )}
-        {route.length === 2 && <Polyline positions={route} pathOptions={{ color: "#dc2626", weight: 4, dashArray: "8 8", opacity: 0.8 }} />}
-        {ambPos && (
-          <Marker position={ambPos} icon={ambulanceIcon}>
-            <Popup>Ambulance en route — {Math.round(progress)}%</Popup>
-          </Marker>
-        )}
-        {user && <FitBounds a={[hospital.lat, hospital.lng]} b={[user.lat, user.lng]} />}
-      </MapContainer>
-    </div>
-  );
+  // Sync user + route
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (user) {
+      if (!layersRef.current.user) {
+        layersRef.current.user = L.marker([user.lat, user.lng]).bindPopup("Your location").addTo(map);
+      } else {
+        layersRef.current.user.setLatLng([user.lat, user.lng]);
+      }
+      const routeCoords: [number, number][] = [[hospital.lat, hospital.lng], [user.lat, user.lng]];
+      if (!layersRef.current.route) {
+        layersRef.current.route = L.polyline(routeCoords, {
+          color: "#dc2626", weight: 4, dashArray: "8 8", opacity: 0.8,
+        }).addTo(map);
+      } else {
+        layersRef.current.route.setLatLngs(routeCoords);
+      }
+      map.fitBounds(routeCoords as L.LatLngBoundsExpression, { padding: [40, 40] });
+    }
+  }, [user, hospital]);
+
+  // Sync ambulance marker
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (ambPos) {
+      if (!layersRef.current.amb) {
+        layersRef.current.amb = L.marker(ambPos, { icon: ambulanceIcon })
+          .bindPopup(`Ambulance en route — ${Math.round(progress)}%`)
+          .addTo(map);
+      } else {
+        layersRef.current.amb.setLatLng(ambPos);
+        layersRef.current.amb.setPopupContent(`Ambulance en route — ${Math.round(progress)}%`);
+      }
+    } else if (layersRef.current.amb) {
+      map.removeLayer(layersRef.current.amb);
+      layersRef.current.amb = undefined;
+    }
+  }, [ambPos, progress]);
+
+  return <div ref={containerRef} className="w-full h-full" style={{ minHeight: 300, borderRadius: "0.5rem" }} />;
 }
