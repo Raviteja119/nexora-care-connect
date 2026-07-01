@@ -17,6 +17,8 @@ const DICT: Dict = {
   "nav.chat": { en: "Chat", hi: "चैट", ta: "அரட்டை", te: "చాట్", es: "Chat", fr: "Chat", ar: "محادثة" },
   "nav.education": { en: "Education", hi: "शिक्षा", ta: "கல்வி", te: "విద్య", es: "Educación", fr: "Éducation", ar: "تعليم" },
   "nav.feedback": { en: "Feedback", hi: "प्रतिक्रिया", ta: "கருத்து", te: "అభిప్రాయం", es: "Opinión", fr: "Avis", ar: "ملاحظات" },
+ "nav.doctors": { en: "Doctors", hi: "डॉक्टर", ta: "மருத்துவர்கள்", te: "వైద్యులు", es: "Doctores", fr: "Docteurs", ar: "الأطباء" },
+ "nav.tollFree": { en: "Toll-Free", hi: "टोल-फ्री", ta: "இலவச", te: "టోల్-ఫ్రీ", es: "Gratuito", fr: "Gratuit", ar: "مجاني" },
   "nav.profile": { en: "Profile", hi: "प्रोफ़ाइल", ta: "சுயவிவரம்", te: "ప్రొఫైల్", es: "Perfil", fr: "Profil", ar: "ملف" },
   "nav.logout": { en: "Logout", hi: "लॉग आउट", ta: "வெளியேறு", te: "లాగ్ అవుట్", es: "Salir", fr: "Déconnexion", ar: "خروج" },
   "common.welcome": { en: "Welcome to Your Health Dashboard", hi: "आपके स्वास्थ्य डैशबोर्ड में आपका स्वागत है", ta: "உங்கள் சுகாதார டாஷ்போர்டுக்கு வரவேற்கிறோம்", te: "మీ ఆరోగ్య డాష్‌బోర్డ్‌కు స్వాగతం", es: "Bienvenido a tu Panel de Salud", fr: "Bienvenue sur votre tableau de bord santé", ar: "مرحبا بك في لوحة الصحة" },
