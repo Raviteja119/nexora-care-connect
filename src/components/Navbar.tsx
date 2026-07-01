@@ -12,7 +12,9 @@ import {
   TestTube,
   MessageCircle,
   BookOpen,
-  Star
+  Star,
+  PhoneCall,
+  Stethoscope
 } from "lucide-react";
 import { Logo } from "./Logo";
 import { LanguageSelector } from "./LanguageSelector";
@@ -27,7 +29,9 @@ const navItemsRaw = [
   { key: "nav.home", path: "/dashboard", icon: Home },
   { key: "nav.beds", path: "/beds", icon: Bed },
   { key: "nav.appointments", path: "/appointments", icon: UserCheck },
+  { key: "nav.doctors", path: "/doctors", icon: Stethoscope },
   { key: "nav.emergency", path: "/emergency", icon: Phone },
+  { key: "nav.tollFree", path: "/toll-free", icon: PhoneCall },
   { key: "nav.track", path: "/track", icon: MapPin },
   { key: "nav.prescriptions", path: "/prescriptions", icon: Pill },
   { key: "nav.videoCall", path: "/video-call", icon: Video },
@@ -47,11 +51,11 @@ export function Navbar() {
     <nav className="bg-card border-b border-border shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Top Row */}
-        <div className="flex justify-between items-center h-14 gap-2">
+        <div className="flex justify-between items-center h-16 gap-2">
           
           {/* Logo */}
           <Link to="/dashboard" className="shrink-0 min-w-0">
-            <Logo size={30} />
+            <Logo size={44} />
           </Link>
 
           {/* Desktop Navigation */}
