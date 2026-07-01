@@ -190,25 +190,16 @@ export default function Emergency() {
     if (map[lang]) setSelectedLanguage(map[lang]);
   }, [lang]);
 
-  // Re-speak when user switches language while an emergency is selected
+  // Re-speak in the newly picked language, but ONLY after the user has
+  // pressed "Request Emergency Help" — never auto-play on category click.
   useEffect(() => {
-    if (selectedEmergency) {
+    if (emergencyRequested && selectedEmergency) {
       const txt = localiseInstruction(selectedEmergency, selectedLanguage);
       setAudioMessage(txt);
       playAudioMessage(txt);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLanguage]);
-
-  // Auto-play when the user picks an emergency type
-  useEffect(() => {
-    if (selectedEmergency && !emergencyRequested) {
-      const txt = localiseInstruction(selectedEmergency, selectedLanguage);
-      setAudioMessage(txt);
-      playAudioMessage(txt);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEmergency]);
 
   function localiseInstruction(type: string, language: string): string {
     const instr = (emergencyInstructions as any)[type];
