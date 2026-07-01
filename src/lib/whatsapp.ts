@@ -1,6 +1,6 @@
 // Demo WhatsApp integration — routes all video/voice consultation requests
 // to the on-call doctor "Dr. Teja" via WhatsApp.
-export const WHATSAPP_NUMBER = "919491966048"; // +91 9491966048
+export const WHATSAPP_NUMBER = "918019331689"; // +91 8019331689
 export const ON_CALL_DOCTOR = "Dr. Teja (On-Call Physician)";
 
 /**
@@ -14,6 +14,10 @@ export function openWhatsAppChat(message: string) {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const deepLink = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${text}`;
   const webUrl = `https://web.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${text}`;
+  // Copy the doctor's number to clipboard as a guaranteed fallback so the
+  // patient can dial or paste it into any messenger even if WhatsApp is
+  // blocked on their network.
+  try { navigator.clipboard?.writeText(`+${WHATSAPP_NUMBER}`); } catch {}
   try {
     if (isMobile) {
       window.location.href = deepLink;
@@ -22,7 +26,7 @@ export function openWhatsAppChat(message: string) {
     }
     const win = window.open(webUrl, "_blank", "noopener,noreferrer");
     if (!win) {
-      // Popup blocked — navigate the same tab as a guaranteed fallback.
+      // Popup blocked — navigate same tab as a guaranteed fallback.
       window.location.href = webUrl;
     }
     return { ok: true, url: webUrl };
