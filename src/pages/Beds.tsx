@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Navbar } from "@/components/Navbar";
 import { Bed, Users, Heart, Stethoscope, RefreshCw, Clock, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { LiveClock } from "@/components/LiveClock";
 
 const initialBedTypes = [
   {
@@ -64,7 +65,8 @@ export default function Beds() {
   });
 
   useEffect(() => {
-    const interval = setInterval(() => setLastUpdated(new Date()), 30000);
+    // Bump lastUpdated every second so header shows a live tick.
+    const interval = setInterval(() => setLastUpdated(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -143,11 +145,12 @@ export default function Beds() {
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">Bed Availability</h1>
               <p className="text-muted-foreground">Real-time bed availability across all departments</p>
+              <div className="mt-2"><LiveClock /></div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Last updated</p>
-                <p className="text-sm font-medium">{lastUpdated.toLocaleTimeString()}</p>
+                <p className="text-sm font-medium font-mono">{lastUpdated.toLocaleTimeString()}</p>
               </div>
               <Button
                 variant="outline"
