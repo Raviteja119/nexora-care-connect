@@ -21,6 +21,8 @@ const DICT: Dict = {
  "nav.tollFree": { en: "Toll-Free", hi: "टोल-फ्री", ta: "இலவச", te: "టోల్-ఫ్రీ", es: "Gratuito", fr: "Gratuit", ar: "مجاني" },
   "nav.profile": { en: "Profile", hi: "प्रोफ़ाइल", ta: "சுயவிவரம்", te: "ప్రొఫైల్", es: "Perfil", fr: "Profil", ar: "ملف" },
   "nav.logout": { en: "Logout", hi: "लॉग आउट", ta: "வெளியேறு", te: "లాగ్ అవుట్", es: "Salir", fr: "Déconnexion", ar: "خروج" },
+  "nav.menu": { en: "Menu", hi: "मेनू", ta: "பட்டியல்", te: "మెను", kn: "ಮೆನು", ml: "മെനു", es: "Menú", fr: "Menu", ar: "القائمة" },
+  "nav.hospitalMgmt": { en: "Hospital Mgmt", hi: "अस्पताल प्रबंधन", ta: "மருத்துவமனை மேலாண்மை", te: "ఆసుపత్రి నిర్వహణ", kn: "ಆಸ್ಪತ್ರೆ ನಿರ್ವಹಣೆ", ml: "ആശുപത്രി മാനേജ്മെന്റ്", es: "Gestión Hospital", fr: "Gestion Hôpital", ar: "إدارة المستشفى" },
   "common.welcome": { en: "Welcome to Your Health Dashboard", hi: "आपके स्वास्थ्य डैशबोर्ड में आपका स्वागत है", ta: "உங்கள் சுகாதார டாஷ்போர்டுக்கு வரவேற்கிறோம்", te: "మీ ఆరోగ్య డాష్‌బోర్డ్‌కు స్వాగతం", es: "Bienvenido a tu Panel de Salud", fr: "Bienvenue sur votre tableau de bord santé", ar: "مرحبا بك في لوحة الصحة" },
 };
 
