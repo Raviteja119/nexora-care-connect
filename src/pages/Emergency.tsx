@@ -411,11 +411,16 @@ export default function Emergency() {
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                       <SelectContent>
                         <SelectItem value="english">English</SelectItem>
                         <SelectItem value="hindi">हिन्दी (Hindi)</SelectItem>
                         <SelectItem value="tamil">தமிழ் (Tamil)</SelectItem>
                         <SelectItem value="telugu">తెలుగు (Telugu)</SelectItem>
+                        <SelectItem value="kannada">ಕನ್ನಡ (Kannada)</SelectItem>
+                        <SelectItem value="malayalam">മലയാളം (Malayalam)</SelectItem>
+                        <SelectItem value="spanish">Español (Spanish)</SelectItem>
+                        <SelectItem value="french">Français (French)</SelectItem>
+                        <SelectItem value="arabic">العربية (Arabic)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
