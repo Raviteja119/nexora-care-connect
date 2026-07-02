@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { openWhatsAppChat } from "@/lib/whatsapp";
 import { AmbulanceMap } from "@/components/AmbulanceMap";
+import { HOSPITALS, haversineKm } from "@/lib/hospitals";
 
 interface LocationData {
   distance: string;
@@ -27,9 +28,16 @@ interface LocationData {
 }
 
 export default function Track() {
-  // Hospital coords — demo: NeXora General Hospital, Bangalore
-  const HOSPITAL = { lat: 12.9716, lng: 77.5946, name: "NeXora General Hospital" };
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
+  // Destination hospital = nearest hospital to the patient's live location.
+  // Falls back to first hospital until geolocation resolves.
+  const HOSPITAL = (() => {
+    if (!userPos) return { lat: HOSPITALS[0].lat, lng: HOSPITALS[0].lng, name: HOSPITALS[0].name };
+    const nearest = [...HOSPITALS]
+      .map((h) => ({ h, km: haversineKm(userPos, h) }))
+      .sort((a, b) => a.km - b.km)[0];
+    return { lat: nearest.h.lat, lng: nearest.h.lng, name: nearest.h.name };
+  })();
   const [geoError, setGeoError] = useState<string | null>(null);
 
   const [locationData, setLocationData] = useState<LocationData>({
@@ -99,15 +107,23 @@ export default function Track() {
   };
 
   const requestAmbulance = () => {
-    setLocationData(prev => ({
+    setLocationData((prev) => ({
       ...prev,
       ambulanceStatus: "dispatched",
-      ambulanceETA: "15 minutes"
+      ambulanceETA: "15 minutes",
     }));
-    const res = openWhatsAppChat(`🚑 Ambulance dispatch requested for patient near ${userPos ? `${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}` : "current location"}.`);
-    toast.success("Ambulance dispatched! ETA 15 minutes", {
-      description: "If WhatsApp didn't open, tap retry.",
-      action: res?.url ? { label: "Retry", onClick: () => window.open(res.url, "_blank", "noopener") } : undefined,
+    setAmbProgress(0);
+    toast.success(`Ambulance dispatched from ${HOSPITAL.name}! ETA 15 minutes`, {
+      description: "Track live movement on the map below.",
+      action: {
+        label: "Notify via WhatsApp",
+        onClick: () =>
+          openWhatsAppChat(
+            `🚑 Ambulance requested for patient near ${
+              userPos ? `${userPos.lat.toFixed(4)}, ${userPos.lng.toFixed(4)}` : "current location"
+            }. Dispatch from ${HOSPITAL.name}.`,
+          ),
+      },
     });
   };
 
