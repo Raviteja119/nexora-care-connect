@@ -219,38 +219,37 @@ export default function Emergency() {
 
   const playAudioMessage = (message: string) => {
     if (!message) return;
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
-      setIsPlayingAudio(true);
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    setIsPlayingAudio(true);
+    const langMap: Record<string, string> = {
+      english: "en-IN", hindi: "hi-IN", tamil: "ta-IN", telugu: "te-IN",
+      kannada: "kn-IN", malayalam: "ml-IN", spanish: "es-ES", french: "fr-FR", arabic: "ar-SA",
+    };
+    const target = langMap[selectedLanguage] || ttsLangCode(lang);
+    const speakNow = () => {
       const utterance = new SpeechSynthesisUtterance(message);
-      const langMap: Record<string, string> = {
-        english: "en-IN", hindi: "hi-IN", tamil: "ta-IN", telugu: "te-IN",
-        kannada: "kn-IN", malayalam: "ml-IN", spanish: "es-ES", french: "fr-FR", arabic: "ar-SA",
-      };
-      const target = langMap[selectedLanguage] || ttsLangCode(lang);
-      utterance.lang = target;
-      const speakNow = () => {
-        const voices = speechSynthesis.getVoices();
-        const exact = voices.find((v) => v.lang.toLowerCase() === target.toLowerCase());
-        const prefix = voices.find((v) => v.lang.toLowerCase().startsWith(target.split("-")[0].toLowerCase()));
-        if (exact || prefix) {
-          utterance.voice = exact || prefix!;
-        } else if (selectedLanguage !== "english") {
-          toast.info(`Voice pack for ${selectedLanguage} not installed — speaking instructions in English.`);
-          utterance.lang = "en-IN";
-          const en = voices.find((v) => v.lang.startsWith("en"));
-          if (en) utterance.voice = en;
-        }
-        speechSynthesis.speak(utterance);
-      };
-      if (speechSynthesis.getVoices().length === 0) {
-        speechSynthesis.onvoiceschanged = () => { speechSynthesis.onvoiceschanged = null; speakNow(); };
-      } else {
-        speakNow();
-      }
       utterance.rate = 0.85;
       utterance.volume = 1;
+      utterance.lang = target;
+      const voices = speechSynthesis.getVoices();
+      const exact = voices.find((v) => v.lang.toLowerCase() === target.toLowerCase());
+      const prefix = voices.find((v) => v.lang.toLowerCase().startsWith(target.split("-")[0].toLowerCase()));
+      if (exact || prefix) {
+        utterance.voice = exact || prefix!;
+      } else if (selectedLanguage !== "english") {
+        toast.info(`Voice pack for ${selectedLanguage} not installed — using default voice.`);
+      }
       utterance.onend = () => setIsPlayingAudio(false);
+      utterance.onerror = () => setIsPlayingAudio(false);
+      speechSynthesis.speak(utterance);
+    };
+    if (speechSynthesis.getVoices().length === 0) {
+      speechSynthesis.onvoiceschanged = () => { speechSynthesis.onvoiceschanged = null; speakNow(); };
+      // fallback in case onvoiceschanged never fires
+      setTimeout(speakNow, 400);
+    } else {
+      speakNow();
     }
   };
 
@@ -281,13 +280,13 @@ export default function Emergency() {
   const handleEmergencyRequestWithAlert = () => {
     handleEmergencyRequest();
     const type = emergencyTypes.find((t) => t.value === selectedEmergency)?.label ?? "Emergency";
-    const res = openWhatsAppChat(
-      `🚨 EMERGENCY ALERT - ${type}\n\nA patient has requested emergency ambulance dispatch via NeXora.\n\nDetails: ${additionalInfo || "No additional info provided"}\n\nPlease confirm dispatch and ETA.`,
-    );
-    toast.success("Emergency alert sent to hospital via WhatsApp", {
+    // IMPORTANT: The "Request Emergency Help" button must NOT trigger a
+    // video call, normal call, or WhatsApp. It only records the request,
+    // plays the audio instructions and dispatches the ambulance simulation.
+    // Video/normal call must be initiated by the dedicated call buttons.
+    toast.success(`Emergency request sent — ${type}`, {
       duration: 5000,
-      description: "If WhatsApp didn't open, tap retry.",
-      action: res?.url ? { label: "Retry", onClick: () => window.open(res.url, "_blank", "noopener") } : undefined,
+      description: "Ambulance dispatched. Follow the audio instructions while help arrives.",
     });
   };
 
