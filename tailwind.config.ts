@@ -89,7 +89,6 @@ export default {
             height: "0",
           },
         },
-      },
         "pulse-ring": { "0%": { transform: "scale(.9)", opacity: "0.8" }, "100%": { transform: "scale(1.8)", opacity: "0" } },
         float: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-6px)" } },
       },
