@@ -66,6 +66,7 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      fontFamily: { display: ["Sora", "sans-serif"], sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"] },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
@@ -88,8 +89,12 @@ export default {
             height: "0",
           },
         },
+        "pulse-ring": { "0%": { transform: "scale(.9)", opacity: "0.8" }, "100%": { transform: "scale(1.8)", opacity: "0" } },
+        float: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-6px)" } },
       },
       animation: {
+        "pulse-ring": "pulse-ring 1.6s cubic-bezier(0.2,0.6,0.4,1) infinite",
+        float: "float 4s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },

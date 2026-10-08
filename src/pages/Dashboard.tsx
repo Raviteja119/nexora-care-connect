@@ -7,6 +7,10 @@ import dashboardBg from "@/assets/dashboard-bg.jpg";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { NearbyHospitals } from "@/components/NearbyHospitals";
 import { OnboardingTour } from "@/components/OnboardingTour";
+import { VitalsMonitor } from "@/components/VitalsMonitor";
+import { QueueTracker } from "@/components/QueueTracker";
+import { getCurrentUser } from "@/lib/auth";
+import { motion } from "framer-motion";
 
 const quickStats = [
   { title: "Available Beds", value: "47", description: "General: 23, ICU: 15, Special: 9", icon: Bed, link: "/beds" },
@@ -23,8 +27,9 @@ const recentActivities = [
 
 export default function Dashboard() {
   const { t } = useLanguage();
+  const isPatient = (getCurrentUser()?.role ?? "patient") === "patient";
   return (
-    <div className="h-screen w-screen flex flex-col bg-background">
+    <div className="h-screen w-screen flex flex-col">
       {/* Navbar */}
       <Navbar />
 
@@ -33,12 +38,12 @@ export default function Dashboard() {
         <OnboardingTour />
         {/* Hero Section */}
         <div className="relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${dashboardBg})` }}>
-          <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background backdrop-blur-[2px]" />
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">{t("common.welcome")}</h1>
+            <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-5xl font-bold text-gradient mb-4">{t("common.welcome")}</motion.h1>
             <p className="text-xl text-muted-foreground mb-8">{t("common.tagline")}</p>
             <Link to="/emergency">
-              <Button variant="destructive" size="lg" className="shadow-lg flex items-center justify-center mx-auto">
+              <Button variant="destructive" size="lg" className="bg-gradient-emergency shadow-emergency rounded-full px-8 h-12 hover:scale-105 transition-transform flex items-center justify-center mx-auto">
                 <Phone className="h-5 w-5 mr-2" /> {t("common.emergencyAccess")}
               </Button>
             </Link>
@@ -51,8 +56,9 @@ export default function Dashboard() {
             {quickStats.map((stat, idx) => {
               const Icon = stat.icon;
               return (
-                <Link key={idx} to={stat.link}>
-                  <Card className="hover:shadow-lg transition-all duration-200 cursor-pointer group">
+                <motion.div key={idx} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.07 }}>
+                <Link to={stat.link}>
+                  <Card className="glass lift cursor-pointer group">
                     <CardHeader className="flex items-center justify-between pb-2">
                       <CardTitle className="text-sm font-medium text-muted-foreground">{stat.title}</CardTitle>
                       <Icon className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
@@ -63,14 +69,22 @@ export default function Dashboard() {
                     </CardContent>
                   </Card>
                 </Link>
+                </motion.div>
               );
             })}
           </div>
 
+          {isPatient && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <VitalsMonitor />
+              <QueueTracker />
+            </div>
+          )}
+
           {/* Quick Actions & Recent Activities */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Quick Actions */}
-            <Card>
+            <Card className="glass">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2"><Activity className="h-5 w-5 text-primary" /> <span>Quick Actions</span></CardTitle>
                 <CardDescription>Access essential hospital services instantly</CardDescription>
@@ -86,7 +100,7 @@ export default function Dashboard() {
             </Card>
 
             {/* Recent Activities */}
-            <Card>
+            <Card className="glass">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2"><Clock className="h-5 w-5 text-primary" /> <span>Recent Activities</span></CardTitle>
                 <CardDescription>Your latest healthcare interactions</CardDescription>

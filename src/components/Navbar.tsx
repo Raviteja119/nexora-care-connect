@@ -22,6 +22,7 @@ import {
 import { Logo } from "./Logo";
 import { LanguageSelector } from "./LanguageSelector";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -63,7 +64,7 @@ export function Navbar() {
   const quickItems = items.filter((i) => QUICK_ACCESS.includes(i.path));
 
   return (
-    <nav className="bg-card border-b border-border shadow-sm sticky top-0 z-40">
+    <nav className="glass border-x-0 border-t-0 shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         {/* Top Row */}
         <div className="flex justify-between items-center h-16 gap-2">
@@ -130,7 +131,8 @@ export function Navbar() {
                     size="sm"
                     className={cn(
                       "flex items-center gap-1.5 px-3 h-9",
-                      isActive(item.path) && "shadow-md",
+                      isActive(item.path) && "bg-gradient-medical shadow-medical",
+                      "rounded-full transition-all duration-300",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -143,6 +145,7 @@ export function Navbar() {
 
           {/* Profile + Logout + Language */}
           <div className="flex items-center gap-1 shrink-0">
+            <ThemeToggle />
             <NotificationBell />
             <LanguageSelector />
             <Link to="/profile">
